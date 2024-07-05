@@ -2,11 +2,11 @@
 pragma solidity >=0.7.5;
 pragma abicoder v2;
 
-import '@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol';
+import '@katana/v3-contracts/core/interfaces/callback/IKatanaV3SwapCallback.sol';
 
 /// @title Router token swapping functionality
-/// @notice Functions for swapping tokens via Uniswap V3
-interface ISwapRouter is IUniswapV3SwapCallback {
+/// @notice Functions for swapping tokens via Katana V3
+interface ISwapRouter is IKatanaV3SwapCallback {
     struct ExactInputSingleParams {
         address tokenIn;
         address tokenOut;
