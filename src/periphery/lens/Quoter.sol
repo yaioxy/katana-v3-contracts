@@ -31,7 +31,7 @@ contract Quoter is IQuoter, IKatanaV3SwapCallback, PeripheryImmutableState {
   }
 
   /// @inheritdoc IKatanaV3SwapCallback
-  function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes memory path) external view override {
+  function katanaV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes memory path) external view override {
     require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
     (address tokenIn, address tokenOut, uint24 fee) = path.decodeFirstPool();
     CallbackValidation.verifyCallback(factory, tokenIn, tokenOut, fee);

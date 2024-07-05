@@ -30,7 +30,7 @@ contract NonfungiblePositionManager is
   PeripheryValidation,
   SelfPermit
 {
-  // details about the uniswap position
+  // details about the katana position
   struct Position {
     // the nonce for permits
     uint96 nonce;

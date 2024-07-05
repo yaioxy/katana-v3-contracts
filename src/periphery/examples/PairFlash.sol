@@ -39,7 +39,7 @@ contract PairFlash is IKatanaV3FlashCallback, PeripheryPayments {
   /// @param data The data needed in the callback passed as FlashCallbackData from `initFlash`
   /// @notice implements the callback called from flash
   /// @dev fails if the flash is not profitable, meaning the amountOut from the flash is less than the amount borrowed
-  function uniswapV3FlashCallback(uint256 fee0, uint256 fee1, bytes calldata data) external override {
+  function katanaV3FlashCallback(uint256 fee0, uint256 fee1, bytes calldata data) external override {
     FlashCallbackData memory decoded = abi.decode(data, (FlashCallbackData));
     CallbackValidation.verifyCallback(factory, decoded.poolKey);
 
@@ -110,7 +110,7 @@ contract PairFlash is IKatanaV3FlashCallback, PeripheryPayments {
   }
 
   /// @param params The parameters necessary for flash and the callback, passed in as FlashParams
-  /// @notice Calls the pools flash function with data needed in `uniswapV3FlashCallback`
+  /// @notice Calls the pools flash function with data needed in `katanaV3FlashCallback`
   function initFlash(FlashParams memory params) external {
     PoolAddress.PoolKey memory poolKey =
       PoolAddress.PoolKey({ token0: params.token0, token1: params.token1, fee: params.fee1 });

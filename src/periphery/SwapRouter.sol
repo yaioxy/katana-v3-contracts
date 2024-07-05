@@ -50,7 +50,7 @@ contract SwapRouter is
   }
 
   /// @inheritdoc IKatanaV3SwapCallback
-  function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external override {
+  function katanaV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external override {
     require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
     SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
     (address tokenIn, address tokenOut, uint24 fee) = data.path.decodeFirstPool();

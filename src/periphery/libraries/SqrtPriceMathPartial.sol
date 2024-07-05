@@ -6,7 +6,7 @@ import "@katana/v3-contracts/core/libraries/UnsafeMath.sol";
 import "@katana/v3-contracts/core/libraries/FixedPoint96.sol";
 
 /// @title Functions based on Q64.96 sqrt price and liquidity
-/// @notice Exposes two functions from @uniswap/v3-core SqrtPriceMath
+/// @notice Exposes two functions from @katana/v3-contracts/core SqrtPriceMath
 /// that use square root of price as a Q64.96 and liquidity to compute deltas
 library SqrtPriceMathPartial {
   /// @notice Gets the amount0 delta between two prices

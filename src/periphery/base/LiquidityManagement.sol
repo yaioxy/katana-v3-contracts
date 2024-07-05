@@ -22,7 +22,7 @@ abstract contract LiquidityManagement is IKatanaV3MintCallback, PeripheryImmutab
   }
 
   /// @inheritdoc IKatanaV3MintCallback
-  function uniswapV3MintCallback(uint256 amount0Owed, uint256 amount1Owed, bytes calldata data) external override {
+  function katanaV3MintCallback(uint256 amount0Owed, uint256 amount1Owed, bytes calldata data) external override {
     MintCallbackData memory decoded = abi.decode(data, (MintCallbackData));
     CallbackValidation.verifyCallback(factory, decoded.poolKey);
 
