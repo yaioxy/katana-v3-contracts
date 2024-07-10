@@ -47,14 +47,13 @@ contract KatanaV3Pool is IKatanaV3Pool {
     uint16 observationCardinality;
     // the next maximum number of observations to store, triggered in observations.write
     uint16 observationCardinalityNext;
-    // the current protocol fee as a percentage of the swap fee taken on withdrawal
-    // represented as an integer denominator (1/x)%
-    uint8 feeProtocol;
+    // the current protocol fee as a ratio of the swap fee: first byte is numerator, second byte is denominator
+    uint16 feeProtocol;
     // whether the pool is locked
     bool unlocked;
   }
-  /// @inheritdoc IKatanaV3PoolState
 
+  /// @inheritdoc IKatanaV3PoolState
   Slot0 public override slot0;
 
   /// @inheritdoc IKatanaV3PoolState
@@ -261,7 +260,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
       observationIndex: 0,
       observationCardinality: cardinality,
       observationCardinalityNext: cardinalityNext,
-      feeProtocol: 0,
+      feeProtocol: IKatanaV3Factory(factory).feeAmountProtocol(fee),
       unlocked: true
     });
 
@@ -493,7 +492,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
 
   struct SwapCache {
     // the protocol fee for the input token
-    uint8 feeProtocol;
+    uint16 feeProtocol;
     // liquidity at the beginning of the swap
     uint128 liquidityStart;
     // the timestamp of the current block
@@ -566,7 +565,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
     SwapCache memory cache = SwapCache({
       liquidityStart: liquidity,
       blockTimestamp: _blockTimestamp(),
-      feeProtocol: zeroForOne ? (slot0Start.feeProtocol % 16) : (slot0Start.feeProtocol >> 4),
+      feeProtocol: slot0Start.feeProtocol,
       secondsPerLiquidityCumulativeX128: 0,
       tickCumulative: 0,
       computedLatestObservation: false
@@ -624,7 +623,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
 
       // if the protocol fee is on, calculate how much is owed, decrement feeAmount, and increment protocolFee
       if (cache.feeProtocol > 0) {
-        uint256 delta = step.feeAmount / cache.feeProtocol;
+        uint256 delta = FullMath.mulDiv(step.feeAmount, cache.feeProtocol & 255, cache.feeProtocol >> 8);
         step.feeAmount -= delta;
         state.protocolFee += uint128(delta);
       }
@@ -752,14 +751,12 @@ contract KatanaV3Pool is IKatanaV3Pool {
     uint256 paid1 = balance1After - balance1Before;
 
     if (paid0 > 0) {
-      uint8 feeProtocol0 = slot0.feeProtocol % 16;
-      uint256 fees0 = feeProtocol0 == 0 ? 0 : paid0 / feeProtocol0;
+      uint256 fees0 = FullMath.mulDiv(paid0, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
       if (uint128(fees0) > 0) protocolFees.token0 += uint128(fees0);
       feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
     }
     if (paid1 > 0) {
-      uint8 feeProtocol1 = slot0.feeProtocol >> 4;
-      uint256 fees1 = feeProtocol1 == 0 ? 0 : paid1 / feeProtocol1;
+      uint256 fees1 = FullMath.mulDiv(paid1, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
       if (uint128(fees1) > 0) protocolFees.token1 += uint128(fees1);
       feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
     }
@@ -768,14 +765,18 @@ contract KatanaV3Pool is IKatanaV3Pool {
   }
 
   /// @inheritdoc IKatanaV3PoolOwnerActions
-  function setFeeProtocol(uint8 feeProtocol0, uint8 feeProtocol1) external override lock onlyFactoryOwner {
-    require(
-      (feeProtocol0 == 0 || (feeProtocol0 >= 4 && feeProtocol0 <= 10))
-        && (feeProtocol1 == 0 || (feeProtocol1 >= 4 && feeProtocol1 <= 10))
+  function setFeeProtocol(uint8 feeProtocolNumerator, uint8 feeProtocolDenominator)
+    external
+    override
+    lock
+    onlyFactoryOwner
+  {
+    require(feeProtocolNumerator < feeProtocolDenominator);
+    uint16 feeProtocolOld = slot0.feeProtocol;
+    slot0.feeProtocol = uint16(feeProtocolNumerator) | (uint16(feeProtocolDenominator) << 8);
+    emit SetFeeProtocol(
+      uint8(feeProtocolOld & 255), uint8(feeProtocolOld >> 8), feeProtocolNumerator, feeProtocolDenominator
     );
-    uint8 feeProtocolOld = slot0.feeProtocol;
-    slot0.feeProtocol = feeProtocol0 + (feeProtocol1 << 4);
-    emit SetFeeProtocol(feeProtocolOld % 16, feeProtocolOld >> 4, feeProtocol0, feeProtocol1);
   }
 
   /// @inheritdoc IKatanaV3PoolOwnerActions

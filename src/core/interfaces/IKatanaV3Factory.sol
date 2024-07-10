@@ -22,7 +22,8 @@ interface IKatanaV3Factory {
   /// @notice Emitted when a new fee amount is enabled for pool creation via the factory
   /// @param fee The enabled fee, denominated in hundredths of a bip
   /// @param tickSpacing The minimum number of ticks between initialized ticks for pools created with the given fee
-  event FeeAmountEnabled(uint24 indexed fee, int24 indexed tickSpacing);
+  /// @param protocolFee The ratio of the fee amount to be sent to the Ronin treasury.
+  event FeeAmountEnabled(uint24 indexed fee, int24 indexed tickSpacing, uint16 indexed protocolFee);
 
   /// @notice Returns the beacon used for creating new pools
   /// @return The beacon contract address
@@ -38,6 +39,12 @@ interface IKatanaV3Factory {
   /// @param fee The enabled fee, denominated in hundredths of a bip. Returns 0 in case of unenabled fee
   /// @return The tick spacing
   function feeAmountTickSpacing(uint24 fee) external view returns (int24);
+
+  /// @notice Returns the default protocol fee ratio for a given fee amount, if enabled, or 0 if not enabled
+  /// @dev This protocol fee can be changed by the factory owner in each pool later
+  /// @param fee The enabled fee, denominated in hundredths of a bip. Returns 0 in case of unenabled fee
+  /// @return The protocol fee as a ratio of the fee amount: first byte is numerator, second byte is denominator
+  function feeAmountProtocol(uint24 fee) external view returns (uint16);
 
   /// @notice Returns the pool address for a given pair of tokens and a fee, or address 0 if it does not exist
   /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
@@ -66,5 +73,6 @@ interface IKatanaV3Factory {
   /// @dev Fee amounts may never be removed once enabled
   /// @param fee The fee amount to enable, denominated in hundredths of a bip (i.e. 1e-6)
   /// @param tickSpacing The spacing between ticks to be enforced for all pools created with the given fee amount
-  function enableFeeAmount(uint24 fee, int24 tickSpacing) external;
+  /// @param feeProtocol The protocol fee as a ratio of the fee amount: first byte is numerator, second byte is denominator
+  function enableFeeAmount(uint24 fee, int24 tickSpacing, uint16 feeProtocol) external;
 }
