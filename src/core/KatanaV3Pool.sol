@@ -696,10 +696,14 @@ contract KatanaV3Pool is IKatanaV3Pool {
     // overflow is acceptable, protocol has to withdraw before it hits type(uint128).max fees
     if (zeroForOne) {
       feeGrowthGlobal0X128 = state.feeGrowthGlobalX128;
-      if (state.protocolFee > 0) protocolFees.token0 += state.protocolFee;
+      if (state.protocolFee > 0) {
+        TransferHelper.safeTransfer(token0, IKatanaV3Factory(factory).treasury(), state.protocolFee);
+      }
     } else {
       feeGrowthGlobal1X128 = state.feeGrowthGlobalX128;
-      if (state.protocolFee > 0) protocolFees.token1 += state.protocolFee;
+      if (state.protocolFee > 0) {
+        TransferHelper.safeTransfer(token1, IKatanaV3Factory(factory).treasury(), state.protocolFee);
+      }
     }
 
     (amount0, amount1) = zeroForOne == exactInput
@@ -752,12 +756,12 @@ contract KatanaV3Pool is IKatanaV3Pool {
 
     if (paid0 > 0) {
       uint256 fees0 = FullMath.mulDiv(paid0, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
-      if (uint128(fees0) > 0) protocolFees.token0 += uint128(fees0);
+      if (fees0 > 0) TransferHelper.safeTransfer(token0, IKatanaV3Factory(factory).treasury(), fees0);
       feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
     }
     if (paid1 > 0) {
       uint256 fees1 = FullMath.mulDiv(paid1, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
-      if (uint128(fees1) > 0) protocolFees.token1 += uint128(fees1);
+      if (fees1 > 0) TransferHelper.safeTransfer(token1, IKatanaV3Factory(factory).treasury(), fees1);
       feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
     }
 

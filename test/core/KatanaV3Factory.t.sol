@@ -8,10 +8,12 @@ import { KatanaV3Factory } from "@katana/v3-contracts/core/KatanaV3Factory.sol";
 import { IKatanaV3Pool } from "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
 
 contract KatanaV3FactoryTest is Test {
+  address owner = makeAddr("factoryOwner");
+  address treasury = makeAddr("treasury");
   KatanaV3Factory factory;
 
   function setUp() public {
-    factory = new KatanaV3Factory();
+    factory = new KatanaV3Factory(owner, treasury);
   }
 
   function test_createPool() public {

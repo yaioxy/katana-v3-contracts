@@ -9,6 +9,11 @@ interface IKatanaV3Factory {
   /// @param newOwner The owner after the owner was changed
   event OwnerChanged(address indexed oldOwner, address indexed newOwner);
 
+  /// @notice Emitted when the treasury address is changed
+  /// @param oldTreasury The treasury address before the treasury was changed
+  /// @param newTreasury The treasury address after the treasury was changed
+  event TreasuryChanged(address indexed oldTreasury, address indexed newTreasury);
+
   /// @notice Emitted when a pool is created
   /// @param token0 The first token of the pool by address sort order
   /// @param token1 The second token of the pool by address sort order
@@ -33,6 +38,11 @@ interface IKatanaV3Factory {
   /// @dev Can be changed by the current owner via setOwner
   /// @return The address of the factory owner
   function owner() external view returns (address);
+
+  /// @notice Returns the treasury address that receives protocol fees
+  /// @dev Can be changed by the current owner via setTreasury
+  /// @return The address of the treasury
+  function treasury() external view returns (address);
 
   /// @notice Returns the tick spacing for a given fee amount, if enabled, or 0 if not enabled
   /// @dev A fee amount can never be removed, so this value should be hard coded or cached in the calling context
@@ -68,6 +78,11 @@ interface IKatanaV3Factory {
   /// @dev Must be called by the current owner
   /// @param _owner The new owner of the factory
   function setOwner(address _owner) external;
+
+  /// @notice Updates the treasury address
+  /// @dev Must be called by the current owner
+  /// @param _treasury The new treasury address
+  function setTreasury(address _treasury) external;
 
   /// @notice Enables a fee amount with the given tickSpacing
   /// @dev Fee amounts may never be removed once enabled

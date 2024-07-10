@@ -17,6 +17,8 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
 
   /// @inheritdoc IKatanaV3Factory
   address public override owner;
+  /// @inheritdoc IKatanaV3Factory
+  address public override treasury;
 
   /// @inheritdoc IKatanaV3Factory
   mapping(uint24 => int24) public override feeAmountTickSpacing;
@@ -25,12 +27,15 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
   /// @inheritdoc IKatanaV3Factory
   mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
 
-  constructor() {
+  constructor(address _owner, address _treasury) {
     address poolImplementation = address(new KatanaV3Pool());
     beacon = address(new UpgradeableBeacon(poolImplementation));
 
-    owner = msg.sender;
-    emit OwnerChanged(address(0), msg.sender);
+    owner = _owner;
+    emit OwnerChanged(address(0), _owner);
+
+    treasury = _treasury;
+    emit TreasuryChanged(address(0), _treasury);
 
     // swap fee 0.01% = 0.005% for LP + 0.005% for protocol
     // tick spacing of 2, approximately 0.02% between initializable ticks
@@ -70,6 +75,12 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
     require(msg.sender == owner);
     emit OwnerChanged(owner, _owner);
     owner = _owner;
+  }
+
+  function setTreasury(address _treasury) external override {
+    require(msg.sender == owner);
+    emit TreasuryChanged(treasury, _treasury);
+    treasury = _treasury;
   }
 
   /// @inheritdoc IKatanaV3Factory

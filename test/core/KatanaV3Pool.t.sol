@@ -13,6 +13,9 @@ import { KatanaV3Pool } from "@katana/v3-contracts/core/KatanaV3Pool.sol";
 import { IKatanaV3Pool } from "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
 
 contract KatanaV3PoolTest is Test {
+  address owner = makeAddr("factoryOwner");
+  address treasury = makeAddr("treasury");
+
   KatanaV3Factory factory;
   uint24[] fees = [100, 3000, 10000];
   int24[] tickSpacings = [2, 60, 200];
@@ -26,7 +29,7 @@ contract KatanaV3PoolTest is Test {
     vm.label(token0, "token0");
     vm.label(token1, "token1");
 
-    factory = new KatanaV3Factory();
+    factory = new KatanaV3Factory(owner, treasury);
 
     pools.push(KatanaV3Pool(factory.createPool(token0, token1, 100)));
     pools.push(KatanaV3Pool(factory.createPool(token0, token1, 3000)));
@@ -66,7 +69,9 @@ contract KatanaV3PoolTest is Test {
       KatanaV3Pool pool = pools[i];
       pool.swap(address(this), true, 10_000_000, TickMath.MIN_SQRT_RATIO + 1, "");
       (uint128 protocolFee0, uint128 protocolFee1) = pool.protocolFees();
-      console.log("protocolFees", protocolFee0, protocolFee1);
+      assertEq(uint256(protocolFee0), 0);
+      assertEq(uint256(protocolFee1), 0);
+      console.log(ERC20Mock(token0).balanceOf(treasury), ERC20Mock(token1).balanceOf(treasury));
     }
   }
 }
