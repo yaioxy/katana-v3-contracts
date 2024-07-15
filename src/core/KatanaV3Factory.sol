@@ -38,8 +38,8 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
     emit TreasuryChanged(address(0), _treasury);
 
     // swap fee 0.01% = 0.005% for LP + 0.005% for protocol
-    // tick spacing of 2, approximately 0.02% between initializable ticks
-    _enableFeeAmount(100, 2, 5 | (10 << 8));
+    // tick spacing of 1, equivalent to 0.01% between initializable ticks
+    _enableFeeAmount(100, 1, 5 | (10 << 8));
 
     // swap fee 0.3% = 0.25% for LP + 0.05% for protocol
     // tick spacing of 60, approximately 0.60% between initializable ticks
