@@ -348,7 +348,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
 
     uint256 _feeGrowthGlobal0X128 = feeGrowthGlobal0X128; // SLOAD for gas optimization
     uint256 _feeGrowthGlobal1X128 = feeGrowthGlobal1X128; // SLOAD for gas optimization
-
+    uint128 _maxLiquidityPerTick = maxLiquidityPerTick; // SLOAD for gas optimization
+    
     // if we need to update the ticks, do it
     bool flippedLower;
     bool flippedUpper;
@@ -367,7 +368,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
         tickCumulative,
         time,
         false,
-        maxLiquidityPerTick
+        _maxLiquidityPerTick
       );
       flippedUpper = ticks.update(
         tickUpper,
@@ -379,14 +380,15 @@ contract KatanaV3Pool is IKatanaV3Pool {
         tickCumulative,
         time,
         true,
-        maxLiquidityPerTick
+        _maxLiquidityPerTick
       );
 
+      int24 _tickSpacing = tickSpacing; // SLOAD for gas optimization
       if (flippedLower) {
-        tickBitmap.flipTick(tickLower, tickSpacing);
+        tickBitmap.flipTick(tickLower, _tickSpacing);
       }
       if (flippedUpper) {
-        tickBitmap.flipTick(tickUpper, tickSpacing);
+        tickBitmap.flipTick(tickUpper, _tickSpacing);
       }
     }
 
@@ -491,8 +493,12 @@ contract KatanaV3Pool is IKatanaV3Pool {
   }
 
   struct SwapCache {
+    // the swap fee in hundredths of a bip
+    uint24 fee;
     // the protocol fee for the input token
     uint16 feeProtocol;
+    // the spacing between usable ticks
+    int24 tickSpacing;
     // liquidity at the beginning of the swap
     uint128 liquidityStart;
     // the timestamp of the current block
@@ -565,7 +571,9 @@ contract KatanaV3Pool is IKatanaV3Pool {
     SwapCache memory cache = SwapCache({
       liquidityStart: liquidity,
       blockTimestamp: _blockTimestamp(),
+      fee: fee,
       feeProtocol: slot0Start.feeProtocol,
+      tickSpacing: tickSpacing,
       secondsPerLiquidityCumulativeX128: 0,
       tickCumulative: 0,
       computedLatestObservation: false
@@ -590,7 +598,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
       step.sqrtPriceStartX96 = state.sqrtPriceX96;
 
       (step.tickNext, step.initialized) =
-        tickBitmap.nextInitializedTickWithinOneWord(state.tick, tickSpacing, zeroForOne);
+        tickBitmap.nextInitializedTickWithinOneWord(state.tick, cache.tickSpacing, zeroForOne);
 
       // ensure that we do not overshoot the min/max tick, as the tick bitmap is not aware of these bounds
       if (step.tickNext < TickMath.MIN_TICK) {
@@ -610,7 +618,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
           : step.sqrtPriceNextX96,
         state.liquidity,
         state.amountSpecifiedRemaining,
-        fee
+        cache.fee
       );
 
       if (exactInput) {
@@ -692,18 +700,15 @@ contract KatanaV3Pool is IKatanaV3Pool {
     // update liquidity if it changed
     if (cache.liquidityStart != state.liquidity) liquidity = state.liquidity;
 
-    // update fee growth global and, if necessary, protocol fees
-    // overflow is acceptable, protocol has to withdraw before it hits type(uint128).max fees
-    if (zeroForOne) {
-      feeGrowthGlobal0X128 = state.feeGrowthGlobalX128;
-      if (state.protocolFee > 0) {
-        TransferHelper.safeTransfer(token0, IKatanaV3Factory(factory).treasury(), state.protocolFee);
-      }
-    } else {
-      feeGrowthGlobal1X128 = state.feeGrowthGlobalX128;
-      if (state.protocolFee > 0) {
-        TransferHelper.safeTransfer(token1, IKatanaV3Factory(factory).treasury(), state.protocolFee);
-      }
+    address tokenIn = zeroForOne ? token0 : token1;
+    address tokenOut = zeroForOne ? token1 : token0;
+
+    // update fee growth global
+    if (zeroForOne) feeGrowthGlobal0X128 = state.feeGrowthGlobalX128;
+    else feeGrowthGlobal1X128 = state.feeGrowthGlobalX128;
+    // transfer protocol fees to the treasury
+    if (state.protocolFee > 0) {
+      TransferHelper.safeTransfer(tokenIn, IKatanaV3Factory(factory).treasury(), state.protocolFee);
     }
 
     (amount0, amount1) = zeroForOne == exactInput
@@ -712,13 +717,13 @@ contract KatanaV3Pool is IKatanaV3Pool {
 
     // do the transfers and collect payment
     if (zeroForOne) {
-      if (amount1 < 0) TransferHelper.safeTransfer(token1, recipient, uint256(-amount1));
+      if (amount1 < 0) TransferHelper.safeTransfer(tokenOut, recipient, uint256(-amount1));
 
       uint256 balance0Before = balance0();
       IKatanaV3SwapCallback(msg.sender).katanaV3SwapCallback(amount0, amount1, data);
       require(balance0Before.add(uint256(amount0)) <= balance0(), "IIA");
     } else {
-      if (amount0 < 0) TransferHelper.safeTransfer(token0, recipient, uint256(-amount0));
+      if (amount0 < 0) TransferHelper.safeTransfer(tokenOut, recipient, uint256(-amount0));
 
       uint256 balance1Before = balance1();
       IKatanaV3SwapCallback(msg.sender).katanaV3SwapCallback(amount0, amount1, data);
@@ -734,35 +739,44 @@ contract KatanaV3Pool is IKatanaV3Pool {
     uint128 _liquidity = liquidity;
     require(_liquidity > 0, "L");
 
-    uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee, 1e6);
-    uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee, 1e6);
-    uint256 balance0Before = balance0();
-    uint256 balance1Before = balance1();
+    uint256 paid0;
+    uint256 paid1;
 
-    if (amount0 > 0) TransferHelper.safeTransfer(token0, recipient, amount0);
-    if (amount1 > 0) TransferHelper.safeTransfer(token1, recipient, amount1);
+    // scope to avoid stack too deep error
+    {
+      address _token0 = token0;
+      address _token1 = token1;
+      uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee, 1e6);
+      uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee, 1e6);
+      uint256 balance0Before = balance0();
+      uint256 balance1Before = balance1();
 
-    IKatanaV3FlashCallback(msg.sender).katanaV3FlashCallback(fee0, fee1, data);
+      if (amount0 > 0) TransferHelper.safeTransfer(_token0, recipient, amount0);
+      if (amount1 > 0) TransferHelper.safeTransfer(_token1, recipient, amount1);
 
-    uint256 balance0After = balance0();
-    uint256 balance1After = balance1();
+      IKatanaV3FlashCallback(msg.sender).katanaV3FlashCallback(fee0, fee1, data);
 
-    require(balance0Before.add(fee0) <= balance0After, "F0");
-    require(balance1Before.add(fee1) <= balance1After, "F1");
+      uint256 balance0After = balance0();
+      uint256 balance1After = balance1();
+      address treasury = IKatanaV3Factory(factory).treasury();
 
-    // sub is safe because we know balanceAfter is gt balanceBefore by at least fee
-    uint256 paid0 = balance0After - balance0Before;
-    uint256 paid1 = balance1After - balance1Before;
+      require(balance0Before.add(fee0) <= balance0After, "F0");
+      require(balance1Before.add(fee1) <= balance1After, "F1");
 
-    if (paid0 > 0) {
-      uint256 fees0 = FullMath.mulDiv(paid0, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
-      if (fees0 > 0) TransferHelper.safeTransfer(token0, IKatanaV3Factory(factory).treasury(), fees0);
-      feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
-    }
-    if (paid1 > 0) {
-      uint256 fees1 = FullMath.mulDiv(paid1, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
-      if (fees1 > 0) TransferHelper.safeTransfer(token1, IKatanaV3Factory(factory).treasury(), fees1);
-      feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
+      // sub is safe because we know balanceAfter is gt balanceBefore by at least fee
+      paid0 = balance0After - balance0Before;
+      paid1 = balance1After - balance1Before;
+
+      if (paid0 > 0) {
+        uint256 fees0 = FullMath.mulDiv(paid0, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
+        if (fees0 > 0) TransferHelper.safeTransfer(_token0, treasury, fees0);
+        feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
+      }
+      if (paid1 > 0) {
+        uint256 fees1 = FullMath.mulDiv(paid1, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
+        if (fees1 > 0) TransferHelper.safeTransfer(_token1, treasury, fees1);
+        feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
+      }
     }
 
     emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
