@@ -76,6 +76,12 @@ interface INonfungiblePositionManager is
       uint128 tokensOwed1
     );
 
+  /// @notice Returns the collected fees for a given token ID
+  /// @param tokenId The ID of the token for which fees are collected
+  /// @return token0 The amount of token0 collected
+  /// @return token1 The amount of token1 collected
+  function collectedFees(uint256 tokenId) external view returns (uint256 token0, uint256 token1);
+
   struct MintParams {
     address token0;
     address token1;

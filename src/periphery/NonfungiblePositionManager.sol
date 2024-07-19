@@ -51,6 +51,11 @@ contract NonfungiblePositionManager is
     uint128 tokensOwed1;
   }
 
+  struct CollectedFees {
+    uint256 token0;
+    uint256 token1;
+  }
+
   /// @dev IDs of pools assigned by this contract
   mapping(address => uint80) private _poolIds;
 
@@ -59,6 +64,9 @@ contract NonfungiblePositionManager is
 
   /// @dev The token ID position data
   mapping(uint256 => Position) private _positions;
+
+  /// @dev How many tokens are collected by the position, as of the last colection
+  mapping(uint256 => CollectedFees) private _collectedFees;
 
   /// @dev The ID of the next token that will be minted. Skips 0
   uint176 private _nextId = 1;
@@ -112,6 +120,11 @@ contract NonfungiblePositionManager is
       position.tokensOwed0,
       position.tokensOwed1
     );
+  }
+
+  function collectedFees(uint256 tokenId) external view override returns (uint256 token0, uint256 token1) {
+    CollectedFees memory fees = _collectedFees[tokenId];
+    return (fees.token0, fees.token1);
   }
 
   /// @dev Caches a pool key
@@ -332,6 +345,10 @@ contract NonfungiblePositionManager is
 
     // the actual amounts collected are returned
     (amount0, amount1) = pool.collect(recipient, position.tickLower, position.tickUpper, amount0Collect, amount1Collect);
+
+    CollectedFees storage fees = _collectedFees[params.tokenId];
+    fees.token0 += amount0;
+    fees.token1 += amount1;
 
     // sometimes there will be a few less wei than expected due to rounding down in core, but we just subtract the full amount expected
     // instead of the actual amount so we can burn the token
