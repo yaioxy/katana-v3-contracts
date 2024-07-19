@@ -354,6 +354,12 @@ contract NonfungiblePositionManager is
     // instead of the actual amount so we can burn the token
     (position.tokensOwed0, position.tokensOwed1) = (tokensOwed0 - amount0Collect, tokensOwed1 - amount1Collect);
 
+    // if there's no liquidity and no tokens owed, burn the position
+    if (position.liquidity == 0 && tokensOwed0 == amount0Collect && tokensOwed1 == amount1Collect) {
+      delete _positions[params.tokenId];
+      _burn(params.tokenId);
+    }
+
     emit Collect(params.tokenId, recipient, amount0Collect, amount1Collect);
   }
 
