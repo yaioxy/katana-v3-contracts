@@ -5,6 +5,7 @@ pragma abicoder v2;
 import { Test, console } from "forge-std/Test.sol";
 
 import { KatanaV3Factory } from "@katana/v3-contracts/core/KatanaV3Factory.sol";
+import { KatanaV3FactoryProxy } from "@katana/v3-contracts/core/KatanaV3FactoryProxy.sol";
 import { IKatanaV3Pool } from "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
 
 contract KatanaV3FactoryTest is Test {
@@ -13,7 +14,14 @@ contract KatanaV3FactoryTest is Test {
   KatanaV3Factory factory;
 
   function setUp() public {
-    factory = new KatanaV3Factory(owner, treasury);
+    address factoryLogic = address(new KatanaV3Factory());
+    factory = KatanaV3Factory(
+      address(
+        new KatanaV3FactoryProxy(
+          factoryLogic, owner, abi.encodeWithSelector(KatanaV3Factory.initialize.selector, owner, treasury)
+        )
+      )
+    );
   }
 
   function test_createPool() public {

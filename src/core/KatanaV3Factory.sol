@@ -13,9 +13,6 @@ import "./KatanaV3Pool.sol";
 /// @notice Deploys Katana V3 pools and manages ownership and control over pool protocol fees
 contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
   /// @inheritdoc IKatanaV3Factory
-  address public immutable override beacon;
-
-  /// @inheritdoc IKatanaV3Factory
   address public override owner;
   /// @inheritdoc IKatanaV3Factory
   address public override treasury;
@@ -29,15 +26,22 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
   /// @inheritdoc IKatanaV3Factory
   mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
 
-  constructor(address _owner, address _treasury) {
-    address poolImplementation = address(new KatanaV3Pool());
-    beacon = address(new UpgradeableBeacon(poolImplementation));
+  /// @dev Whether the factory has been initialized
+  bool private _initialized;
 
-    owner = _owner;
-    emit OwnerChanged(address(0), _owner);
+  constructor() {
+    // disable initialization
+    _initialized = true;
+  }
 
-    treasury = _treasury;
-    emit TreasuryChanged(address(0), _treasury);
+  function initialize(address owner_, address treasury_) external {
+    require(!_initialized);
+
+    owner = owner_;
+    emit OwnerChanged(address(0), owner_);
+
+    treasury = treasury_;
+    emit TreasuryChanged(address(0), treasury_);
 
     // swap fee 0.01% = 0.005% for LP + 0.005% for protocol
     // tick spacing of 1, equivalent to 0.01% between initializable ticks
@@ -50,11 +54,8 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
     // swap fee 1% = 0.85% for LP + 0.15% for protocol
     // tick spacing of 200, approximately 2.02% between initializable ticks
     _enableFeeAmount(10000, 200, 15 | (100 << 8));
-  }
 
-  function upgradeBeacon(address newImplementation) external {
-    require(msg.sender == owner);
-    UpgradeableBeacon(beacon).upgradeTo(newImplementation);
+    _initialized = true;
   }
 
   /// @inheritdoc IKatanaV3Factory

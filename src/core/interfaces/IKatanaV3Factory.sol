@@ -30,10 +30,6 @@ interface IKatanaV3Factory {
   /// @param protocolFee The ratio of the fee amount to be sent to the Ronin treasury.
   event FeeAmountEnabled(uint24 indexed fee, int24 indexed tickSpacing, uint16 indexed protocolFee);
 
-  /// @notice Returns the beacon used for creating new pools
-  /// @return The beacon contract address
-  function beacon() external view returns (address);
-
   /// @notice Returns the current owner of the factory
   /// @dev Can be changed by the current owner via setOwner
   /// @return The address of the factory owner
