@@ -2,6 +2,11 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
+import "@openzeppelin/contracts/introspection/IERC165.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
+
 import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
 import "@katana/v3-contracts/core/libraries/FixedPoint128.sol";
 import "@katana/v3-contracts/core/libraries/FullMath.sol";
@@ -77,10 +82,23 @@ contract NonfungiblePositionManager is
   address private immutable _tokenDescriptor;
 
   constructor(address _factory, address _WETH9, address _tokenDescriptor_)
-    ERC721Permit("Katana V3 Positions NFT-V1", "UNI-V3-POS", "1")
+    ERC721Permit("Katana V3 Positions NFT-V1", "KATANA-V3-POS", "1")
     PeripheryImmutableState(_factory, _WETH9)
   {
     _tokenDescriptor = _tokenDescriptor_;
+  }
+
+  function supportsInterface(bytes4 interfaceId) public pure override(ERC165, IERC165) returns (bool) {
+    return interfaceId == type(IERC165).interfaceId || interfaceId == type(IERC721).interfaceId
+      || interfaceId == type(IERC721Metadata).interfaceId || interfaceId == type(IERC721Enumerable).interfaceId;
+  }
+
+  function name() public pure override(ERC721, IERC721Metadata) returns (string memory) {
+    return "Katana V3 Positions NFT-V1";
+  }
+
+  function symbol() public pure override(ERC721, IERC721Metadata) returns (string memory) {
+    return "KATANA-V3-POS";
   }
 
   /// @inheritdoc INonfungiblePositionManager
