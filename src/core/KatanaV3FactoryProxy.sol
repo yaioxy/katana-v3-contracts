@@ -6,10 +6,9 @@ import "@openzeppelin/contracts/proxy/UpgradeableBeacon.sol";
 
 import "./interfaces/IKatanaV3FactoryImmutables.sol";
 
-import "./libraries/SSTORE2.sol";
-
 import "./KatanaV3Pool.sol";
 import "./KatanaV3PoolProxy.sol";
+import "./KatanaV3PoolProxyBytecode.sol";
 
 contract KatanaV3FactoryProxy is TransparentUpgradeableProxy, IKatanaV3FactoryImmutables {
   /// @inheritdoc IKatanaV3FactoryImmutables
@@ -20,7 +19,7 @@ contract KatanaV3FactoryProxy is TransparentUpgradeableProxy, IKatanaV3FactoryIm
   address public immutable override BEACON;
 
   constructor(address _logic, address admin_, bytes memory _data) TransparentUpgradeableProxy(_logic, admin_, _data) {
-    POOL_PROXY_BYTECODE_POINTER = SSTORE2.write(type(KatanaV3PoolProxy).creationCode);
+    POOL_PROXY_BYTECODE_POINTER = address(new KatanaV3PoolProxyBytecode());
 
     address poolImplementation = address(new KatanaV3Pool());
     BEACON = address(new UpgradeableBeacon(poolImplementation));

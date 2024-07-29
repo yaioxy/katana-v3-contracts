@@ -4,8 +4,6 @@ pragma solidity =0.7.6;
 import "./interfaces/IKatanaV3PoolDeployer.sol";
 import "./interfaces/IKatanaV3FactoryImmutables.sol";
 
-import "./libraries/SSTORE2.sol";
-
 contract KatanaV3PoolDeployer is IKatanaV3PoolDeployer {
   struct Parameters {
     address factory;
@@ -31,7 +29,7 @@ contract KatanaV3PoolDeployer is IKatanaV3PoolDeployer {
   {
     parameters = Parameters({ factory: factory, token0: token0, token1: token1, fee: fee, tickSpacing: tickSpacing });
     address pointer = IKatanaV3FactoryImmutables(factory).POOL_PROXY_BYTECODE_POINTER();
-    bytes memory creationCode = SSTORE2.read(pointer);
+    (,bytes memory creationCode) = pointer.staticcall("");
     bytes32 salt = keccak256(abi.encode(token0, token1, fee));
     assembly {
       pool := create2(0, add(creationCode, 0x20), mload(creationCode), salt)
