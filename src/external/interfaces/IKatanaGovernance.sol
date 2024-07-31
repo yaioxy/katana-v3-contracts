@@ -18,6 +18,15 @@ interface IKatanaGovernance {
   );
 
   /**
+   * @dev Sets the router address.
+   *
+   * - Requirements: Caller must be the owner.
+   *
+   * @param router The address of the router.
+   */
+  function setRouter(address router) external;
+
+  /**
    * @dev Sets the permission of a token.
    *
    * - Requirements: Caller must be the owner.
@@ -60,6 +69,16 @@ interface IKatanaGovernance {
   ) external returns (address pair);
 
   /**
+   * @notice Gets the current router address.
+   */
+  function getRouter() external view returns (address);
+
+  /**
+   * @notice Gets the Katana V3 nonfungible position manager address.
+   */
+  function getPositionManager() external view returns (address);
+
+  /**
    * @notice Checks if an account is authorized to interact with a token.
    *
    * @param token The address of the token.
@@ -69,7 +88,7 @@ interface IKatanaGovernance {
   function isAuthorized(address token, address account) external view returns (bool);
 
   /**
-   * @dev Get the factory address.
+   * @dev Gets the Katana V2 factory address.
    */
   function getFactory() external view returns (address);
 

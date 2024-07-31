@@ -25,6 +25,8 @@ import "./interfaces/callback/IKatanaV3MintCallback.sol";
 import "./interfaces/callback/IKatanaV3SwapCallback.sol";
 import "./interfaces/callback/IKatanaV3FlashCallback.sol";
 
+import "../external/libraries/AuthorizationLib.sol";
+
 contract KatanaV3Pool is IKatanaV3Pool {
   using LowGasSafeMath for uint256;
   using LowGasSafeMath for int256;
@@ -422,6 +424,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
     lock
     returns (uint256 amount0, uint256 amount1)
   {
+    AuthorizationLib.checkPositionManager(factory);
+
     require(amount > 0);
     (, int256 amount0Int, int256 amount1Int) = _modifyPosition(
       ModifyPositionParams({
@@ -561,6 +565,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
     uint160 sqrtPriceLimitX96,
     bytes calldata data
   ) external override returns (int256 amount0, int256 amount1) {
+    AuthorizationLib.checkRouter(factory);
+
     require(amountSpecified != 0, "AS");
 
     Slot0 memory slot0Start = slot0;

@@ -23,6 +23,8 @@ import "./base/PeripheryValidation.sol";
 import "./base/SelfPermit.sol";
 import "./base/PoolInitializer.sol";
 
+import "../external/libraries/AuthorizationLib.sol";
+
 /// @title NFT positions
 /// @notice Wraps Katana V3 positions in the ERC721 non-fungible token interface
 contract NonfungiblePositionManager is
@@ -162,6 +164,8 @@ contract NonfungiblePositionManager is
     checkDeadline(params.deadline)
     returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)
   {
+    AuthorizationLib.checkPair(factory, params.token0, params.token1);
+
     IKatanaV3Pool pool;
     (liquidity, amount0, amount1, pool) = addLiquidity(
       AddLiquidityParams({
