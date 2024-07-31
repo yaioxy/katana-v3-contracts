@@ -4,24 +4,33 @@ pragma abicoder v2;
 
 import { Test, console } from "forge-std/Test.sol";
 
-import { KatanaV3Factory } from "@katana/v3-contracts/core/KatanaV3Factory.sol";
-import { KatanaV3FactoryProxy } from "@katana/v3-contracts/core/KatanaV3FactoryProxy.sol";
 import { IKatanaV3Pool } from "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
 
+import { KatanaV3Factory } from "@katana/v3-contracts/core/KatanaV3Factory.sol";
+import { KatanaV3FactoryProxy } from "@katana/v3-contracts/core/KatanaV3FactoryProxy.sol";
+import { KatanaGovernanceMock } from "@katana/v3-contracts/external/KatanaGovernanceMock.sol";
+
+import { DeployKatanaV3Local } from "script/local/DeployKatanaV3Local.s.sol";
+
 contract KatanaV3FactoryTest is Test {
-  address owner = makeAddr("factoryOwner");
-  address treasury = makeAddr("treasury");
+  DeployKatanaV3Local script;
+  KatanaGovernanceMock governance;
+
   KatanaV3Factory factory;
+  address positionManager;
 
   function setUp() public {
-    address factoryLogic = address(new KatanaV3Factory());
-    factory = KatanaV3Factory(
-      address(
-        new KatanaV3FactoryProxy(
-          factoryLogic, owner, abi.encodeWithSelector(KatanaV3Factory.initialize.selector, owner, treasury)
-        )
-      )
-    );
+    script = new DeployKatanaV3Local();
+    script.setUp();
+    script.run();
+
+    factory = KatanaV3Factory(script.factory());
+    positionManager = script.nonfungiblePositionManager();
+
+    governance = KatanaGovernanceMock(script.owner());
+    vm.label(address(this), "Router");
+    governance.setRouter(address(this));
+    governance.setPositionManager(address(positionManager));
   }
 
   function test_createPool() public {
@@ -30,6 +39,7 @@ contract KatanaV3FactoryTest is Test {
     uint24 fee = 3000; // 0.3%
     int24 tickSpacing = 60;
 
+    vm.prank(positionManager);
     address pool = factory.createPool(token0, token1, fee);
 
     assertEq(IKatanaV3Pool(pool).factory(), address(factory));

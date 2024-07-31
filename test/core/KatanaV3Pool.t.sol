@@ -6,58 +6,102 @@ import { Test, console } from "forge-std/Test.sol";
 
 import { ERC20Mock } from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
+import { IKatanaV3Pool } from "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
+import { INonfungiblePositionManager } from "@katana/v3-contracts/periphery/interfaces/INonfungiblePositionManager.sol";
+
 import { TickMath } from "@katana/v3-contracts/core/libraries/TickMath.sol";
 
+import { KatanaV3Pool } from "@katana/v3-contracts/core/KatanaV3Pool.sol";
 import { KatanaV3Factory } from "@katana/v3-contracts/core/KatanaV3Factory.sol";
 import { KatanaV3FactoryProxy } from "@katana/v3-contracts/core/KatanaV3FactoryProxy.sol";
-import { KatanaV3Pool } from "@katana/v3-contracts/core/KatanaV3Pool.sol";
-import { IKatanaV3Pool } from "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
+import { NonfungiblePositionManager } from "@katana/v3-contracts/periphery/NonfungiblePositionManager.sol";
+
+import { KatanaGovernanceMock } from "@katana/v3-contracts/external/KatanaGovernanceMock.sol";
+
+import { DeployKatanaV3Local } from "script/local/DeployKatanaV3Local.s.sol";
 
 contract KatanaV3PoolTest is Test {
-  address owner = makeAddr("factoryOwner");
-  address treasury = makeAddr("treasury");
+  DeployKatanaV3Local script;
+  KatanaGovernanceMock governance;
 
-  KatanaV3Factory factory;
   uint24[] fees = [100, 3000, 10000];
   int24[] tickSpacings = [2, 60, 200];
-  KatanaV3Pool[] pools;
+
+  KatanaV3Factory factory;
+  NonfungiblePositionManager positionManager;
+  address treasury;
 
   // Deploy token1 first to make token0 < token1
   address token1 = address(new ERC20Mock("Token1", "TK1", address(this), 10 ** 9 * 10 ** 9));
   address token0 = address(new ERC20Mock("Token0", "TK0", address(this), 10 ** 9 * 10 ** 9));
 
-  function setUp() public {
-    vm.label(token0, "token0");
-    vm.label(token1, "token1");
+  KatanaV3Pool[] pools;
 
-    address factoryLogic = address(new KatanaV3Factory());
-    factory = KatanaV3Factory(
-      address(
-        new KatanaV3FactoryProxy(
-          factoryLogic, owner, abi.encodeWithSelector(KatanaV3Factory.initialize.selector, owner, treasury)
-        )
+  function setUp() public {
+    vm.label(token0, "Token0");
+    vm.label(token1, "Token1");
+
+    script = new DeployKatanaV3Local();
+    script.setUp();
+    script.run();
+
+    factory = KatanaV3Factory(script.factory());
+    positionManager = NonfungiblePositionManager(payable(script.nonfungiblePositionManager()));
+    treasury = script.treasury();
+
+    governance = KatanaGovernanceMock(script.owner());
+    vm.label(address(this), "Router");
+    governance.setRouter(address(this));
+    governance.setPositionManager(address(positionManager));
+
+    // price: token0 = 10 token1
+    pools.push(
+      KatanaV3Pool(
+        positionManager.createAndInitializePoolIfNecessary(token0, token1, 100, 250541448375047931186413801569)
       )
     );
-
-    pools.push(KatanaV3Pool(factory.createPool(token0, token1, 100)));
-    pools.push(KatanaV3Pool(factory.createPool(token0, token1, 3000)));
-    pools.push(KatanaV3Pool(factory.createPool(token0, token1, 10000)));
+    pools.push(
+      KatanaV3Pool(
+        positionManager.createAndInitializePoolIfNecessary(token0, token1, 3000, 250541448375047931186413801569)
+      )
+    );
+    pools.push(
+      KatanaV3Pool(
+        positionManager.createAndInitializePoolIfNecessary(token0, token1, 10000, 250541448375047931186413801569)
+      )
+    );
 
     vm.label(address(pools[0]), "pool[0.01%]");
     vm.label(address(pools[1]), "pool[0.3%]");
     vm.label(address(pools[2]), "pool[1%]");
 
     for (uint256 i = 0; i < pools.length; ++i) {
+      ERC20Mock(token0).approve(address(positionManager), 10 ** 9 * 10 ** 9);
+      ERC20Mock(token1).approve(address(positionManager), 10 ** 9 * 10 ** 9);
+    }
+
+    for (uint256 i = 0; i < pools.length; ++i) {
       KatanaV3Pool pool = pools[i];
       int24 tickSpacing = tickSpacings[i];
-      // price: token0 = 10 token1
-      pool.initialize(250541448375047931186413801569); // sqrt(10) * 2**96
-      pool.mint(
-        address(this),
-        (23027 - 10000) / tickSpacing * tickSpacing,
-        (23027 + 10000) / tickSpacing * tickSpacing,
-        100_000_000,
-        ""
+
+      address poolToken0 = pool.token0();
+      address poolToken1 = pool.token1();
+      uint24 poolFee = pool.fee();
+
+      positionManager.mint(
+        INonfungiblePositionManager.MintParams({
+          token0: poolToken0,
+          token1: poolToken1,
+          fee: poolFee,
+          tickLower: (23027 - 10000) / tickSpacing * tickSpacing,
+          tickUpper: (23027 + 10000) / tickSpacing * tickSpacing,
+          amount0Desired: 1_000_000,
+          amount1Desired: 1_000_000,
+          amount0Min: 1,
+          amount1Min: 1,
+          recipient: address(this),
+          deadline: block.timestamp
+        })
       );
     }
   }
