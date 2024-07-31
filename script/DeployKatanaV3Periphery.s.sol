@@ -8,6 +8,7 @@ import { NonfungibleTokenPositionDescriptor } from
 import { NonfungiblePositionManager } from "@katana/v3-contracts/periphery/NonfungiblePositionManager.sol";
 import { V3Migrator } from "@katana/v3-contracts/periphery/V3Migrator.sol";
 import { TickLens } from "@katana/v3-contracts/periphery/lens/TickLens.sol";
+import { QuoterV2 } from "@katana/v3-contracts/periphery/lens/QuoterV2.sol";
 import { KatanaInterfaceMulticall } from "@katana/v3-contracts/periphery/lens/KatanaInterfaceMulticall.sol";
 import { DeployKatanaV3Core } from "./DeployKatanaV3Core.s.sol";
 
@@ -19,6 +20,7 @@ abstract contract DeployKatanaV3Periphery is DeployKatanaV3Core {
   address public nonfungiblePositionManager;
   address public v3migrator;
   address public tickLens;
+  address public quoterV2;
   address public katanaInterfaceMulticall;
 
   function setUp() public virtual override {
@@ -47,6 +49,9 @@ abstract contract DeployKatanaV3Periphery is DeployKatanaV3Core {
 
     tickLens = address(new TickLens());
     console.log("TickLens deployed:", tickLens);
+
+    quoterV2 = address(new QuoterV2(factory, wron));
+    console.log("QuoterV2 deployed:", quoterV2);
 
     katanaInterfaceMulticall = address(new KatanaInterfaceMulticall());
     console.log("KatanaInterfaceMulticall deployed:", katanaInterfaceMulticall);
