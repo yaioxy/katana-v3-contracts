@@ -83,11 +83,25 @@ contract NonfungiblePositionManager is
   /// @dev The address of the token descriptor contract, which handles generating token URIs for position tokens
   address private immutable _tokenDescriptor;
 
+  /// @dev Whether this contract has been initialized
+  bool private _initialized;
+
   constructor(address _factory, address _WETH9, address _tokenDescriptor_)
     ERC721Permit("Katana V3 Positions NFT-V1", "KATANA-V3-POS", "1")
     PeripheryImmutableState(_factory, _WETH9)
   {
     _tokenDescriptor = _tokenDescriptor_;
+    // disable initialization
+    _initialized = true;
+  }
+
+  function initialize() external {
+    require(!_initialized);
+
+    _nextId = 1;
+    _nextPoolId = 1;
+
+    _initialized = true;
   }
 
   function supportsInterface(bytes4 interfaceId) public pure override(ERC165, IERC165) returns (bool) {

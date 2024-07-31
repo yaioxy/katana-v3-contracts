@@ -40,8 +40,13 @@ abstract contract DeployKatanaV3Periphery is DeployKatanaV3Core {
 
     address nonfungiblePositionManagerImplementation =
       address(new NonfungiblePositionManager(factory, wron, tokenDescriptor));
-    nonfungiblePositionManager =
-      address(new TransparentUpgradeableProxy(nonfungiblePositionManagerImplementation, owner, ""));
+    nonfungiblePositionManager = address(
+      new TransparentUpgradeableProxy(
+        nonfungiblePositionManagerImplementation,
+        owner,
+        abi.encodeWithSelector(NonfungiblePositionManager.initialize.selector)
+      )
+    );
     console.log("NonfungiblePositionManager deployed:", nonfungiblePositionManager);
 
     v3migrator = address(new V3Migrator(factory, wron, nonfungiblePositionManager));
