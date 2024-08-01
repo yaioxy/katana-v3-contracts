@@ -27,7 +27,7 @@ contract KatanaV3FactoryTest is Test {
     factory = KatanaV3Factory(script.factory());
     positionManager = script.nonfungiblePositionManager();
 
-    governance = KatanaGovernanceMock(script.owner());
+    governance = KatanaGovernanceMock(script.governance());
     vm.label(address(this), "Router");
     governance.setRouter(address(this));
     governance.setPositionManager(address(positionManager));

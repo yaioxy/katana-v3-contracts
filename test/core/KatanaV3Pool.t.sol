@@ -49,7 +49,7 @@ contract KatanaV3PoolTest is Test {
     positionManager = NonfungiblePositionManager(payable(script.nonfungiblePositionManager()));
     treasury = script.treasury();
 
-    governance = KatanaGovernanceMock(script.owner());
+    governance = KatanaGovernanceMock(script.governance());
     vm.label(address(this), "Router");
     governance.setRouter(address(this));
     governance.setPositionManager(address(positionManager));
