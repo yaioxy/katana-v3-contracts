@@ -568,7 +568,10 @@ contract KatanaV3Pool is IKatanaV3Pool {
     uint160 sqrtPriceLimitX96,
     bytes calldata data
   ) external override returns (int256 amount0, int256 amount1) {
-    AuthorizationLib.checkRouter(governance);
+    // when quoting, we don't need to check authorization
+    if (tx.origin != address(0)) {
+      AuthorizationLib.checkRouter(governance);
+    }
 
     require(amountSpecified != 0, "AS");
 
