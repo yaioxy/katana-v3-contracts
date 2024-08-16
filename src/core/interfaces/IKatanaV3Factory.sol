@@ -14,6 +14,10 @@ interface IKatanaV3Factory {
   /// @param newTreasury The treasury address after the treasury was changed
   event TreasuryChanged(address indexed oldTreasury, address indexed newTreasury);
 
+  /// @notice Emitted when the ability to call the `flash` function on KatanaV3Pool is toggled
+  /// @param enabled Whether flash loans are enabled
+  event FlashLoanPermissionUpdated(bool indexed enabled);
+
   /// @notice Emitted when a pool is created
   /// @param token0 The first token of the pool by address sort order
   /// @param token1 The second token of the pool by address sort order

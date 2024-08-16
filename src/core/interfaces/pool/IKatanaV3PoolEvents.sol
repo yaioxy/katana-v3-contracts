@@ -101,7 +101,7 @@ interface IKatanaV3PoolEvents {
   /// @param feeProtocolNumeratorOld The numerator of the previous value of protocol fee
   /// @param feeProtocolDenominatorOld The denominator of the previous value of protocol fee
   /// @param feeProtocolNumeratorNew The numerator of the updated value of protocol fee
-  /// @param feeProtocolDenominatorNew The denominator of the oupdated value of protocol fee
+  /// @param feeProtocolDenominatorNew The denominator of the updated value of protocol fee
   event SetFeeProtocol(
     uint8 feeProtocolNumeratorOld,
     uint8 feeProtocolDenominatorOld,

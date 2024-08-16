@@ -18,6 +18,8 @@ contract DeployKatanaV3Local is DeployKatanaV3Periphery {
     wron = address(new ERC20Mock("Wrapped Ronin", "WRON", address(this), 10 ** 9 * 10 ** 9));
     factoryV2 = makeAddr("KatanaV2Factory");
 
+    sender = DEFAULT_SENDER;
+
     super.setUp();
   }
 

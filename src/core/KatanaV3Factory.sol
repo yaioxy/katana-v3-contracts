@@ -20,6 +20,8 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
   address public override treasury;
   /// @inheritdoc IKatanaV3Factory
   bool public override flashLoanEnabled;
+  /// @dev Whether the factory has been initialized
+  bool private _initialized;
 
   /// @inheritdoc IKatanaV3Factory
   mapping(uint24 => int24) public override feeAmountTickSpacing;
@@ -28,10 +30,7 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
   /// @inheritdoc IKatanaV3Factory
   mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
 
-  /// @dev Whether the factory has been initialized
-  bool private _initialized;
-
-  constructor() {
+  constructor(address beacon) KatanaV3PoolDeployer(beacon) {
     // disable initialization
     _initialized = true;
   }
@@ -93,6 +92,7 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
   function toggleFlashLoanPermission() external override {
     require(msg.sender == owner);
     flashLoanEnabled = !flashLoanEnabled;
+    emit FlashLoanPermissionUpdated(flashLoanEnabled);
   }
 
   /// @inheritdoc IKatanaV3Factory

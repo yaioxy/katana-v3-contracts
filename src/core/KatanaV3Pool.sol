@@ -95,15 +95,13 @@ contract KatanaV3Pool is IKatanaV3Pool {
   address public override token0;
   /// @inheritdoc IKatanaV3PoolImmutables
   address public override token1;
-  /// @inheritdoc IKatanaV3PoolImmutables
-  uint24 public override fee;
-
-  /// @inheritdoc IKatanaV3PoolImmutables
-  int24 public override tickSpacing;
 
   /// @inheritdoc IKatanaV3PoolImmutables
   uint128 public override maxLiquidityPerTick;
-
+  /// @inheritdoc IKatanaV3PoolImmutables
+  uint24 public override fee;
+  /// @inheritdoc IKatanaV3PoolImmutables
+  int24 public override tickSpacing;
   /// @dev The contract is initialized with the immutable parameters
   bool private _immutablesInitialized;
 

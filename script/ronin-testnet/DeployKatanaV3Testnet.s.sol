@@ -16,7 +16,7 @@ contract DeployKatanaV3Testnet is DeployKatanaV3Periphery {
     wron = 0xA959726154953bAe111746E265E6d754F48570E6;
     factoryV2 = 0x86587380C4c815Ba0066c90aDB2B45CC9C15E72c;
 
-    vm.rememberKey(vm.envUint("TESTNET_PK"));
+    sender = vm.rememberKey(vm.envUint("TESTNET_PK"));
 
     super.setUp();
   }

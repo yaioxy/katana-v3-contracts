@@ -47,7 +47,9 @@ abstract contract DeployKatanaV3Periphery is DeployKatanaV3Core {
         abi.encodeWithSelector(NonfungiblePositionManager.initialize.selector)
       )
     );
-    require(NonfungiblePositionManager(payable(nonfungiblePositionManager)).governance() == governance, "governance mismatch");
+    require(
+      NonfungiblePositionManager(payable(nonfungiblePositionManager)).governance() == governance, "governance mismatch"
+    );
     console.log("NonfungiblePositionManager deployed:", nonfungiblePositionManager);
 
     v3migrator = address(new V3Migrator(factory, wron, nonfungiblePositionManager));

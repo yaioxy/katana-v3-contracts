@@ -16,7 +16,7 @@ contract DeployKatanaV3Mainnet is DeployKatanaV3Periphery {
     wron = 0xe514d9DEB7966c8BE0ca922de8a064264eA6bcd4; // WRON
     factoryV2 = 0xB255D6A720BB7c39fee173cE22113397119cB930; // Katana V2 Factory
 
-    vm.rememberKey(vm.envUint("MAINNET_PK"));
+    sender = vm.rememberKey(vm.envUint("MAINNET_PK"));
 
     super.setUp();
   }

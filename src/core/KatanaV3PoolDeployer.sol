@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.7.6;
 
-import "./interfaces/IKatanaV3PoolDeployer.sol";
-import "./interfaces/IKatanaV3FactoryImmutables.sol";
+import "@openzeppelin/contracts/utils/Create2.sol";
 
-contract KatanaV3PoolDeployer is IKatanaV3PoolDeployer {
+import "./interfaces/IKatanaV3PoolDeployer.sol";
+import "./interfaces/IKatanaV3PoolBeaconImmutables.sol";
+
+abstract contract KatanaV3PoolDeployer is IKatanaV3PoolDeployer {
+  /// @inheritdoc IKatanaV3PoolDeployer
+  address public immutable override BEACON;
+
   struct Parameters {
     address factory;
     address token0;
@@ -15,6 +20,10 @@ contract KatanaV3PoolDeployer is IKatanaV3PoolDeployer {
 
   /// @inheritdoc IKatanaV3PoolDeployer
   Parameters public override parameters;
+
+  constructor(address beacon) {
+    BEACON = beacon;
+  }
 
   /// @dev Deploys a pool with the given parameters by transiently setting the parameters storage slot and then
   /// clearing it after deploying the pool.
@@ -28,12 +37,9 @@ contract KatanaV3PoolDeployer is IKatanaV3PoolDeployer {
     returns (address pool)
   {
     parameters = Parameters({ factory: factory, token0: token0, token1: token1, fee: fee, tickSpacing: tickSpacing });
-    address pointer = IKatanaV3FactoryImmutables(factory).POOL_PROXY_BYTECODE_POINTER();
-    (, bytes memory creationCode) = pointer.staticcall("");
+    bytes memory creationCode = IKatanaV3PoolBeaconImmutables(BEACON).POOL_PROXY_INIT_CODE();
     bytes32 salt = keccak256(abi.encode(token0, token1, fee));
-    assembly {
-      pool := create2(0, add(creationCode, 0x20), mload(creationCode), salt)
-    }
+    pool = Create2.deploy(0, salt, creationCode);
     delete parameters;
   }
 }

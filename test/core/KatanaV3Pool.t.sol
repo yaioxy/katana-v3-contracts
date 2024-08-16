@@ -13,7 +13,6 @@ import { TickMath } from "@katana/v3-contracts/core/libraries/TickMath.sol";
 
 import { KatanaV3Pool } from "@katana/v3-contracts/core/KatanaV3Pool.sol";
 import { KatanaV3Factory } from "@katana/v3-contracts/core/KatanaV3Factory.sol";
-import { KatanaV3FactoryProxy } from "@katana/v3-contracts/core/KatanaV3FactoryProxy.sol";
 import { NonfungiblePositionManager } from "@katana/v3-contracts/periphery/NonfungiblePositionManager.sol";
 
 import { KatanaGovernanceMock } from "@katana/v3-contracts/external/KatanaGovernanceMock.sol";

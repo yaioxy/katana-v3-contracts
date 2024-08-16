@@ -7,7 +7,6 @@ import { Test, console } from "forge-std/Test.sol";
 import { IKatanaV3Pool } from "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
 
 import { KatanaV3Factory } from "@katana/v3-contracts/core/KatanaV3Factory.sol";
-import { KatanaV3FactoryProxy } from "@katana/v3-contracts/core/KatanaV3FactoryProxy.sol";
 import { KatanaGovernanceMock } from "@katana/v3-contracts/external/KatanaGovernanceMock.sol";
 
 import { DeployKatanaV3Local } from "script/local/DeployKatanaV3Local.s.sol";

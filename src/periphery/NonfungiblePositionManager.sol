@@ -104,15 +104,18 @@ contract NonfungiblePositionManager is
     _initialized = true;
   }
 
+  /// @inheritdoc IERC165
   function supportsInterface(bytes4 interfaceId) public pure override(ERC165, IERC165) returns (bool) {
     return interfaceId == type(IERC165).interfaceId || interfaceId == type(IERC721).interfaceId
       || interfaceId == type(IERC721Metadata).interfaceId || interfaceId == type(IERC721Enumerable).interfaceId;
   }
 
+  /// @inheritdoc IERC721Metadata
   function name() public pure override(ERC721, IERC721Metadata) returns (string memory) {
     return "Katana V3 Positions NFT-V1";
   }
 
+  /// @inheritdoc IERC721Metadata
   function symbol() public pure override(ERC721, IERC721Metadata) returns (string memory) {
     return "KATANA-V3-POS";
   }
