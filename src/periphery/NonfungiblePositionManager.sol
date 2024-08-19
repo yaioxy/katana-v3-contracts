@@ -58,6 +58,13 @@ contract NonfungiblePositionManager is
     uint128 tokensOwed1;
   }
 
+  // position's burned liquidity is owed in token0/token1 units
+  struct BurnedLiquidtyOwed {
+    uint128 token0;
+    uint128 token1;
+  }
+
+  // position's collected fees in token0/token1 units
   struct CollectedFees {
     uint256 token0;
     uint256 token1;
@@ -72,9 +79,6 @@ contract NonfungiblePositionManager is
   /// @dev The token ID position data
   mapping(uint256 => Position) private _positions;
 
-  /// @dev How many tokens are collected by the position, as of the last colection
-  mapping(uint256 => CollectedFees) private _collectedFees;
-
   /// @dev The ID of the next token that will be minted. Skips 0
   uint176 private _nextId = 1;
   /// @dev The ID of the next pool that is used for the first time. Skips 0
@@ -82,6 +86,12 @@ contract NonfungiblePositionManager is
 
   /// @dev The address of the token descriptor contract, which handles generating token URIs for position tokens
   address private immutable _tokenDescriptor;
+
+  /// @dev How many tokens from burning liquidity are owed to the position
+  mapping(uint256 => BurnedLiquidtyOwed) private _burnedLiquidityOwed;
+
+  /// @dev How many tokens are collected by the position, as of the last colection
+  mapping(uint256 => CollectedFees) private _collectedFees;
 
   /// @dev Whether this contract has been initialized
   bool private _initialized;
@@ -311,6 +321,10 @@ contract NonfungiblePositionManager is
 
     require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, "Price slippage check");
 
+    BurnedLiquidtyOwed storage burnedLiquidityOwed = _burnedLiquidityOwed[params.tokenId];
+    burnedLiquidityOwed.token0 += uint128(amount0);
+    burnedLiquidityOwed.token1 += uint128(amount1);
+
     bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
     // this is now updated to the current transaction
     (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) = pool.positions(positionKey);
@@ -344,7 +358,9 @@ contract NonfungiblePositionManager is
     isAuthorizedForToken(params.tokenId)
     returns (uint256 amount0, uint256 amount1)
   {
-    require(params.amount0Max > 0 || params.amount1Max > 0);
+    require(
+      params.amount0Max == type(uint128).max && params.amount1Max == type(uint128).max, "Must collect all tokens owed"
+    );
     // allow collecting to the nft position manager address with address 0
     address recipient = params.recipient == address(0) ? address(this) : params.recipient;
 
@@ -387,8 +403,11 @@ contract NonfungiblePositionManager is
     (amount0, amount1) = pool.collect(recipient, position.tickLower, position.tickUpper, amount0Collect, amount1Collect);
 
     CollectedFees storage fees = _collectedFees[params.tokenId];
-    fees.token0 += amount0;
-    fees.token1 += amount1;
+    BurnedLiquidtyOwed storage burnedLiquidityOwed = _burnedLiquidityOwed[params.tokenId];
+    // we record only the fees collected, not wholly the tokens owed
+    fees.token0 += amount0 - burnedLiquidityOwed.token0;
+    fees.token1 += amount1 - burnedLiquidityOwed.token1;
+    (burnedLiquidityOwed.token0, burnedLiquidityOwed.token1) = (0, 0);
 
     // sometimes there will be a few less wei than expected due to rounding down in core, but we just subtract the full amount expected
     // instead of the actual amount so we can burn the token
