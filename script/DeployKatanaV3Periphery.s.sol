@@ -3,13 +3,12 @@ pragma solidity ^0.7.6;
 
 import { Script, console } from "forge-std/Script.sol";
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/TransparentUpgradeableProxy.sol";
-import { NonfungibleTokenPositionDescriptor } from
-  "@katana/v3-contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
-import { NonfungiblePositionManager } from "@katana/v3-contracts/periphery/NonfungiblePositionManager.sol";
-import { V3Migrator } from "@katana/v3-contracts/periphery/V3Migrator.sol";
-import { TickLens } from "@katana/v3-contracts/periphery/lens/TickLens.sol";
-import { QuoterV2 } from "@katana/v3-contracts/periphery/lens/QuoterV2.sol";
-import { KatanaInterfaceMulticall } from "@katana/v3-contracts/periphery/lens/KatanaInterfaceMulticall.sol";
+import { NonfungibleTokenPositionDescriptor } from "src/periphery/NonfungibleTokenPositionDescriptor.sol";
+import { NonfungiblePositionManager } from "src/periphery/NonfungiblePositionManager.sol";
+import { V3Migrator } from "src/periphery/V3Migrator.sol";
+import { TickLens } from "src/periphery/lens/TickLens.sol";
+import { QuoterV2 } from "src/periphery/lens/QuoterV2.sol";
+import { KatanaInterfaceMulticall } from "src/periphery/lens/KatanaInterfaceMulticall.sol";
 import { DeployKatanaV3Core } from "./DeployKatanaV3Core.s.sol";
 
 abstract contract DeployKatanaV3Periphery is DeployKatanaV3Core {

@@ -2,10 +2,10 @@
 pragma solidity >=0.7.0;
 pragma abicoder v2;
 
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
-import "@katana/v3-contracts/core/libraries/TickMath.sol";
-import "@katana/v3-contracts/core/libraries/BitMath.sol";
-import "@katana/v3-contracts/core/libraries/FullMath.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/libraries/TickMath.sol";
+import "src/core/libraries/BitMath.sol";
+import "src/core/libraries/FullMath.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/SignedSafeMath.sol";

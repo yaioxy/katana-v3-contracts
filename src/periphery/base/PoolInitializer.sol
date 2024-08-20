@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity =0.7.6;
 
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Factory.sol";
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/interfaces/IKatanaV3Factory.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
 
 import "./PeripheryImmutableState.sol";
 import "../interfaces/IPoolInitializer.sol";

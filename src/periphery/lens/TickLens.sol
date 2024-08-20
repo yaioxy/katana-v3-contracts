@@ -2,7 +2,7 @@
 pragma solidity >=0.5.0;
 pragma abicoder v2;
 
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
 
 import "../interfaces/ITickLens.sol";
 

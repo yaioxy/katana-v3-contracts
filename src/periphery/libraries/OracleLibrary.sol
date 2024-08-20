@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0 <0.8.0;
 
-import "@katana/v3-contracts/core/libraries/FullMath.sol";
-import "@katana/v3-contracts/core/libraries/TickMath.sol";
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/libraries/FullMath.sol";
+import "src/core/libraries/TickMath.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
 
 /// @title Oracle library
 /// @notice Provides functions to integrate with V3 pool oracle

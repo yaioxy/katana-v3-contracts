@@ -7,9 +7,9 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
 
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
-import "@katana/v3-contracts/core/libraries/FixedPoint128.sol";
-import "@katana/v3-contracts/core/libraries/FullMath.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/libraries/FixedPoint128.sol";
+import "src/core/libraries/FullMath.sol";
 
 import "./interfaces/INonfungiblePositionManager.sol";
 import "./interfaces/INonfungibleTokenPositionDescriptor.sol";

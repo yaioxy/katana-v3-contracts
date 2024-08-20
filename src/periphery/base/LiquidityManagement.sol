@@ -2,9 +2,9 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Factory.sol";
-import "@katana/v3-contracts/core/interfaces/callback/IKatanaV3MintCallback.sol";
-import "@katana/v3-contracts/core/libraries/TickMath.sol";
+import "src/core/interfaces/IKatanaV3Factory.sol";
+import "src/core/interfaces/callback/IKatanaV3MintCallback.sol";
+import "src/core/libraries/TickMath.sol";
 
 import "../libraries/PoolAddress.sol";
 import "../libraries/CallbackValidation.sol";

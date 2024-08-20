@@ -2,9 +2,9 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import "@katana/v3-contracts/core/libraries/SafeCast.sol";
-import "@katana/v3-contracts/core/libraries/TickMath.sol";
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/libraries/SafeCast.sol";
+import "src/core/libraries/TickMath.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
 
 import "./interfaces/ISwapRouter.sol";
 import "./base/PeripheryImmutableState.sol";

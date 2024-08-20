@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.8 <0.8.0;
 
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
-import "@katana/v3-contracts/core/libraries/FixedPoint128.sol";
-import "@katana/v3-contracts/core/libraries/TickMath.sol";
-import "@katana/v3-contracts/core/libraries/Tick.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/libraries/FixedPoint128.sol";
+import "src/core/libraries/TickMath.sol";
+import "src/core/libraries/Tick.sol";
 import "../interfaces/INonfungiblePositionManager.sol";
 import "./LiquidityAmounts.sol";
 import "./PoolAddress.sol";

@@ -6,16 +6,16 @@ import { Test, console } from "forge-std/Test.sol";
 
 import { ERC20Mock } from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
-import { IKatanaV3Pool } from "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
-import { INonfungiblePositionManager } from "@katana/v3-contracts/periphery/interfaces/INonfungiblePositionManager.sol";
+import { IKatanaV3Pool } from "src/core/interfaces/IKatanaV3Pool.sol";
+import { INonfungiblePositionManager } from "src/periphery/interfaces/INonfungiblePositionManager.sol";
 
-import { TickMath } from "@katana/v3-contracts/core/libraries/TickMath.sol";
+import { TickMath } from "src/core/libraries/TickMath.sol";
 
-import { KatanaV3Pool } from "@katana/v3-contracts/core/KatanaV3Pool.sol";
-import { KatanaV3Factory } from "@katana/v3-contracts/core/KatanaV3Factory.sol";
-import { NonfungiblePositionManager } from "@katana/v3-contracts/periphery/NonfungiblePositionManager.sol";
+import { KatanaV3Pool } from "src/core/KatanaV3Pool.sol";
+import { KatanaV3Factory } from "src/core/KatanaV3Factory.sol";
+import { NonfungiblePositionManager } from "src/periphery/NonfungiblePositionManager.sol";
 
-import { KatanaGovernanceMock } from "@katana/v3-contracts/external/KatanaGovernanceMock.sol";
+import { KatanaGovernanceMock } from "src/external/KatanaGovernanceMock.sol";
 
 import { DeployKatanaV3Local } from "script/local/DeployKatanaV3Local.s.sol";
 

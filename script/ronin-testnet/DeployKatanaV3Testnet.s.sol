@@ -4,7 +4,7 @@ pragma solidity ^0.7.6;
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
 import { DeployKatanaV3Periphery } from "../DeployKatanaV3Periphery.s.sol";
-import { MixedRouteQuoterV1Testnet } from "@katana/v3-contracts/periphery/lens/MixedRouteQuoterV1Testnet.sol";
+import { MixedRouteQuoterV1Testnet } from "src/periphery/lens/MixedRouteQuoterV1Testnet.sol";
 
 contract DeployKatanaV3Testnet is DeployKatanaV3Periphery {
   address mixedRouteQuoterV1Testnet;

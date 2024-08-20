@@ -2,9 +2,9 @@
 pragma solidity ^0.7.6;
 
 import { Script, console } from "forge-std/Script.sol";
-import { KatanaV3Factory } from "@katana/v3-contracts/core/KatanaV3Factory.sol";
-import { KatanaV3Pool } from "@katana/v3-contracts/core/KatanaV3Pool.sol";
-import { KatanaV3PoolBeacon } from "@katana/v3-contracts/core/KatanaV3PoolBeacon.sol";
+import { KatanaV3Factory } from "src/core/KatanaV3Factory.sol";
+import { KatanaV3Pool } from "src/core/KatanaV3Pool.sol";
+import { KatanaV3PoolBeacon } from "src/core/KatanaV3PoolBeacon.sol";
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/TransparentUpgradeableProxy.sol";
 
 abstract contract DeployKatanaV3Core is Script {
