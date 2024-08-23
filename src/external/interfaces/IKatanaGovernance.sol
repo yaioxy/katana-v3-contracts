@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.17 <0.9.0;
+pragma abicoder v2;
 
 interface IKatanaGovernance {
   struct Permission {
@@ -10,12 +11,22 @@ interface IKatanaGovernance {
     mapping(address => bool) allowed;
   }
 
+  /// @dev Emitted when the router address is updated.
+  event RouterUpdated(address indexed by, address indexed oldRouter, address indexed newRouter);
   /// @dev Emitted when the factory address is updated.
   event FactoryUpdated(address indexed by, address factory);
   /// @dev Emitted when the permission of a token is updated.
   event PermissionUpdated(
     address indexed by, address indexed token, uint40 whitelistUntil, address[] allowed, bool[] statuses
   );
+
+  /**
+   * @dev Executes calls to the Katana V3 factory.
+   *
+   * @param data The array of encoded function calls.
+   * @return results The array of encoded results.
+   */
+  function v3FactoryMulticall(bytes[] calldata data) external returns (bytes[] memory results);
 
   /**
    * @dev Sets the router address.
@@ -86,6 +97,11 @@ interface IKatanaGovernance {
    * @return True if the account is authorized, otherwise false.
    */
   function isAuthorized(address token, address account) external view returns (bool);
+
+  /**
+   * @notice Gets the Katana V3 factory address.
+   */
+  function getV3Factory() external view returns (address);
 
   /**
    * @dev Gets the Katana V2 factory address.

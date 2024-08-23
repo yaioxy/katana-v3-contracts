@@ -1,10 +1,13 @@
 // // SPDX-License-Identifier: MIT
 pragma solidity =0.7.6;
+pragma abicoder v2;
 
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import "./interfaces/IKatanaGovernance.sol";
 
 contract KatanaGovernanceMock is IKatanaGovernance {
   address private _router;
+  address private _v3Factory;
   address private _positionManager;
   bool private immutable _defaultPermission;
   mapping(address => mapping(address => uint256)) private _permission;
@@ -23,6 +26,13 @@ contract KatanaGovernanceMock is IKatanaGovernance {
     _permission[token][account] = 2;
   }
 
+  function v3FactoryMulticall(bytes[] calldata data) external override returns (bytes[] memory results) {
+    results = new bytes[](data.length);
+    for (uint256 i = 0; i < data.length; ++i) {
+      results[i] = Address.functionCall(_v3Factory, data[i]);
+    }
+  }
+
   function setRouter(address router) external override {
     _router = router;
   }
@@ -33,6 +43,10 @@ contract KatanaGovernanceMock is IKatanaGovernance {
 
   function getRouter() external view override returns (address) {
     return _router;
+  }
+
+  function getV3Factory() external view override returns (address) {
+    return _v3Factory;
   }
 
   function getPositionManager() external view override returns (address) {
@@ -50,6 +64,10 @@ contract KatanaGovernanceMock is IKatanaGovernance {
 
   function isAuthorized(address token, address account) public view override returns (bool) {
     return _permission[token][account] == 1 || (_defaultPermission && _permission[token][account] == 0);
+  }
+
+  function setV3Factory(address factory) external {
+    _v3Factory = factory;
   }
 
   function setFactory(address) external pure override {
