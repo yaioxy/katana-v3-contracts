@@ -8,6 +8,10 @@ interface IKatanaV3PoolImmutables {
   /// @return The contract address
   function factory() external view returns (address);
 
+  /// @notice The governance contract, which controls the protocol
+  /// @return The contract address
+  function governance() external view returns (address);
+
   /// @notice The first of the two tokens of the pool, sorted by address
   /// @return The token contract address
   function token0() external view returns (address);

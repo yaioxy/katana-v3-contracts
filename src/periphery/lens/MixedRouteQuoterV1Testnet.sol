@@ -22,7 +22,7 @@ import "../libraries/KatanaV2LibraryTestnet.sol";
 /// @notice Does not support exact output swaps since using the contract balance between exactOut swaps is not supported
 /// @dev These functions are not gas efficient and should _not_ be called on chain. Instead, optimistically execute
 /// the swap and check the amounts in the callback.
-contract MixedRouteQuoterV1 is IMixedRouteQuoterV1, IKatanaV3SwapCallback, PeripheryImmutableState {
+contract MixedRouteQuoterV1Testnet is IMixedRouteQuoterV1, IKatanaV3SwapCallback, PeripheryImmutableState {
   using Path for bytes;
   using SafeCast for uint256;
   using PoolTicksCounter for IKatanaV3Pool;
@@ -46,8 +46,8 @@ contract MixedRouteQuoterV1 is IMixedRouteQuoterV1, IKatanaV3SwapCallback, Perip
 
   /// @dev Given an amountIn, fetch the reserves of the V2 pair and get the amountOut
   function getPairAmountOut(uint256 amountIn, address tokenIn, address tokenOut) private view returns (uint256) {
-    (uint256 reserveIn, uint256 reserveOut) = KatanaV2Library.getReserves(factoryV2, tokenIn, tokenOut);
-    return KatanaV2Library.getAmountOut(amountIn, reserveIn, reserveOut);
+    (uint256 reserveIn, uint256 reserveOut) = KatanaV2LibraryTestnet.getReserves(factoryV2, tokenIn, tokenOut);
+    return KatanaV2LibraryTestnet.getAmountOut(amountIn, reserveIn, reserveOut);
   }
 
   /// @inheritdoc IKatanaV3SwapCallback

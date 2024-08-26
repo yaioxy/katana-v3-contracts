@@ -23,6 +23,8 @@ import "./base/PeripheryValidation.sol";
 import "./base/SelfPermit.sol";
 import "./base/PoolInitializer.sol";
 
+import "../external/libraries/AuthorizationLib.sol";
+
 /// @title NFT positions
 /// @notice Wraps Katana V3 positions in the ERC721 non-fungible token interface
 contract NonfungiblePositionManager is
@@ -81,11 +83,25 @@ contract NonfungiblePositionManager is
   /// @dev The address of the token descriptor contract, which handles generating token URIs for position tokens
   address private immutable _tokenDescriptor;
 
+  /// @dev Whether this contract has been initialized
+  bool private _initialized;
+
   constructor(address _factory, address _WETH9, address _tokenDescriptor_)
     ERC721Permit("Katana V3 Positions NFT-V1", "KATANA-V3-POS", "1")
     PeripheryImmutableState(_factory, _WETH9)
   {
     _tokenDescriptor = _tokenDescriptor_;
+    // disable initialization
+    _initialized = true;
+  }
+
+  function initialize() external {
+    require(!_initialized);
+
+    _nextId = 1;
+    _nextPoolId = 1;
+
+    _initialized = true;
   }
 
   function supportsInterface(bytes4 interfaceId) public pure override(ERC165, IERC165) returns (bool) {
@@ -140,6 +156,7 @@ contract NonfungiblePositionManager is
     );
   }
 
+  /// @inheritdoc INonfungiblePositionManager
   function collectedFees(uint256 tokenId) external view override returns (uint256 token0, uint256 token1) {
     CollectedFees memory fees = _collectedFees[tokenId];
     return (fees.token0, fees.token1);
@@ -162,6 +179,8 @@ contract NonfungiblePositionManager is
     checkDeadline(params.deadline)
     returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)
   {
+    AuthorizationLib.checkPair(governance, params.token0, params.token1);
+
     IKatanaV3Pool pool;
     (liquidity, amount0, amount1, pool) = addLiquidity(
       AddLiquidityParams({

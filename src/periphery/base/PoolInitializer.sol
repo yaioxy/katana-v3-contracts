@@ -7,6 +7,8 @@ import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
 import "./PeripheryImmutableState.sol";
 import "../interfaces/IPoolInitializer.sol";
 
+import "../../external/libraries/AuthorizationLib.sol";
+
 /// @title Creates and initializes V3 Pools
 abstract contract PoolInitializer is IPoolInitializer, PeripheryImmutableState {
   /// @inheritdoc IPoolInitializer
@@ -16,6 +18,8 @@ abstract contract PoolInitializer is IPoolInitializer, PeripheryImmutableState {
     override
     returns (address pool)
   {
+    AuthorizationLib.checkPair(governance, token0, token1);
+
     require(token0 < token1);
     pool = IKatanaV3Factory(factory).getPool(token0, token1, fee);
 

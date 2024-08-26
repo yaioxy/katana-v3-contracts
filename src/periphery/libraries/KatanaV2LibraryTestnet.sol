@@ -4,7 +4,7 @@ pragma solidity >=0.5.0;
 import "@katana/v3-contracts/core/libraries/LowGasSafeMath.sol";
 import "../interfaces/IKatanaV2Pair.sol";
 
-library KatanaV2Library {
+library KatanaV2LibraryTestnet {
   using LowGasSafeMath for uint256;
 
   // returns sorted token addresses, used to handle return values from pairs sorted in this order

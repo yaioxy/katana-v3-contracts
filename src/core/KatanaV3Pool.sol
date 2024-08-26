@@ -25,6 +25,8 @@ import "./interfaces/callback/IKatanaV3MintCallback.sol";
 import "./interfaces/callback/IKatanaV3SwapCallback.sol";
 import "./interfaces/callback/IKatanaV3FlashCallback.sol";
 
+import "../external/libraries/AuthorizationLib.sol";
+
 contract KatanaV3Pool is IKatanaV3Pool {
   using LowGasSafeMath for uint256;
   using LowGasSafeMath for int256;
@@ -84,6 +86,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
 
   /// @inheritdoc IKatanaV3PoolImmutables
   address public immutable override factory;
+  /// @inheritdoc IKatanaV3PoolImmutables
+  address public immutable override governance;
 
   // These below immutable constants are set when deploying the beacon proxy of the pool and
   // cannot be changed unless upgraded.
@@ -119,8 +123,9 @@ contract KatanaV3Pool is IKatanaV3Pool {
     _;
   }
 
-  constructor() {
-    factory = msg.sender;
+  constructor(address factory_, address governance_) {
+    factory = factory_;
+    governance = governance_;
     // disable immutables initialization
     _immutablesInitialized = true;
   }
@@ -132,7 +137,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
   {
     require(!_immutablesInitialized);
 
-    require(factory_ == factory, "IF");
+    require(factory_ == factory && factory_ == msg.sender, "IF");
 
     (token0, token1, fee, tickSpacing) = (token0_, token1_, fee_, tickSpacing_);
 
@@ -422,6 +427,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
     lock
     returns (uint256 amount0, uint256 amount1)
   {
+    AuthorizationLib.checkPositionManager(governance);
+
     require(amount > 0);
     (, int256 amount0Int, int256 amount1Int) = _modifyPosition(
       ModifyPositionParams({
@@ -561,6 +568,11 @@ contract KatanaV3Pool is IKatanaV3Pool {
     uint160 sqrtPriceLimitX96,
     bytes calldata data
   ) external override returns (int256 amount0, int256 amount1) {
+    // when quoting, we don't need to check authorization
+    if (tx.origin != address(0)) {
+      AuthorizationLib.checkRouter(governance);
+    }
+
     require(amountSpecified != 0, "AS");
 
     Slot0 memory slot0Start = slot0;

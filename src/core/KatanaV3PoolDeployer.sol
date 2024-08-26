@@ -29,7 +29,7 @@ contract KatanaV3PoolDeployer is IKatanaV3PoolDeployer {
   {
     parameters = Parameters({ factory: factory, token0: token0, token1: token1, fee: fee, tickSpacing: tickSpacing });
     address pointer = IKatanaV3FactoryImmutables(factory).POOL_PROXY_BYTECODE_POINTER();
-    (,bytes memory creationCode) = pointer.staticcall("");
+    (, bytes memory creationCode) = pointer.staticcall("");
     bytes32 salt = keccak256(abi.encode(token0, token1, fee));
     assembly {
       pool := create2(0, add(creationCode, 0x20), mload(creationCode), salt)
