@@ -9,6 +9,7 @@ import { ERC20Mock } from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import { TickMath } from "@katana/v3-contracts/core/libraries/TickMath.sol";
 
 import { KatanaV3Factory } from "@katana/v3-contracts/core/KatanaV3Factory.sol";
+import { KatanaV3FactoryProxy } from "@katana/v3-contracts/core/KatanaV3FactoryProxy.sol";
 import { KatanaV3Pool } from "@katana/v3-contracts/core/KatanaV3Pool.sol";
 import { IKatanaV3Pool } from "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
 
@@ -29,7 +30,14 @@ contract KatanaV3PoolTest is Test {
     vm.label(token0, "token0");
     vm.label(token1, "token1");
 
-    factory = new KatanaV3Factory(owner, treasury);
+    address factoryLogic = address(new KatanaV3Factory());
+    factory = KatanaV3Factory(
+      address(
+        new KatanaV3FactoryProxy(
+          factoryLogic, owner, abi.encodeWithSelector(KatanaV3Factory.initialize.selector, owner, treasury)
+        )
+      )
+    );
 
     pools.push(KatanaV3Pool(factory.createPool(token0, token1, 100)));
     pools.push(KatanaV3Pool(factory.createPool(token0, token1, 3000)));
