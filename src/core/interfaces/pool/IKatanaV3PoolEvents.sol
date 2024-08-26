@@ -98,11 +98,11 @@ interface IKatanaV3PoolEvents {
   event IncreaseObservationCardinalityNext(uint16 observationCardinalityNextOld, uint16 observationCardinalityNextNew);
 
   /// @notice Emitted when the protocol fee is changed by the pool
-  /// @param feeProtocol0Old The previous value of the token0 protocol fee
-  /// @param feeProtocol1Old The previous value of the token1 protocol fee
-  /// @param feeProtocol0New The updated value of the token0 protocol fee
-  /// @param feeProtocol1New The updated value of the token1 protocol fee
-  event SetFeeProtocol(uint8 feeProtocol0Old, uint8 feeProtocol1Old, uint8 feeProtocol0New, uint8 feeProtocol1New);
+  /// @param feeProtocolNumeratorOld The numerator of the previous value of protocol fee
+  /// @param feeProtocolDenominatorOld The denominator of the previous value of protocol fee
+  /// @param feeProtocolNumeratorNew The numerator of the updated value of protocol fee
+  /// @param feeProtocolDenominatorNew The denominator of the oupdated value of protocol fee
+  event SetFeeProtocol(uint8 feeProtocolNumeratorOld, uint8 feeProtocolDenominatorOld, uint8 feeProtocolNumeratorNew, uint8 feeProtocolDenominatorNew);
 
   /// @notice Emitted when the collected protocol fees are withdrawn by the factory owner
   /// @param sender The address that collects the protocol fees
