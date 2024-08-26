@@ -44,6 +44,11 @@ interface IKatanaV3Factory {
   /// @return The address of the treasury
   function treasury() external view returns (address);
 
+  /// @notice Returns whether flash loans are enabled
+  /// @dev Can be changed by the current owner via toggleFlashLoanPermission
+  /// @return Whether flash loans are enabled
+  function flashLoanEnabled() external view returns (bool);
+
   /// @notice Returns the tick spacing for a given fee amount, if enabled, or 0 if not enabled
   /// @dev A fee amount can never be removed, so this value should be hard coded or cached in the calling context
   /// @param fee The enabled fee, denominated in hundredths of a bip. Returns 0 in case of unenabled fee
@@ -83,6 +88,10 @@ interface IKatanaV3Factory {
   /// @dev Must be called by the current owner
   /// @param _treasury The new treasury address
   function setTreasury(address _treasury) external;
+
+  /// @notice Toggles the ability to call the `flash` function on KatanaV3Pool
+  /// @dev Must be called by the current owner
+  function toggleFlashLoanPermission() external;
 
   /// @notice Enables a fee amount with the given tickSpacing
   /// @dev Fee amounts may never be removed once enabled

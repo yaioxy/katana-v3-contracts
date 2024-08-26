@@ -82,9 +82,11 @@ contract KatanaV3Pool is IKatanaV3Pool {
   /// @inheritdoc IKatanaV3PoolState
   Oracle.Observation[65535] public override observations;
 
-  // These immutable constants are set when deploy the beacon proxy of the pool and cannot be changed unless upgrading.
   /// @inheritdoc IKatanaV3PoolImmutables
-  address public override factory;
+  address public immutable override factory;
+
+  // These below immutable constants are set when deploying the beacon proxy of the pool and
+  // cannot be changed unless upgraded.
   /// @inheritdoc IKatanaV3PoolImmutables
   address public override token0;
   /// @inheritdoc IKatanaV3PoolImmutables
@@ -118,6 +120,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
   }
 
   constructor() {
+    factory = msg.sender;
     // disable immutables initialization
     _immutablesInitialized = true;
   }
@@ -127,7 +130,9 @@ contract KatanaV3Pool is IKatanaV3Pool {
   {
     require(!_immutablesInitialized);
 
-    (factory, token0, token1, fee, tickSpacing) = (factory_, token0_, token1_, fee_, tickSpacing_);
+    require(factory_ == factory, "IF");
+
+    (token0, token1, fee, tickSpacing) = (token0_, token1_, fee_, tickSpacing_);
 
     maxLiquidityPerTick = Tick.tickSpacingToMaxLiquidityPerTick(tickSpacing_);
 
@@ -349,7 +354,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
     uint256 _feeGrowthGlobal0X128 = feeGrowthGlobal0X128; // SLOAD for gas optimization
     uint256 _feeGrowthGlobal1X128 = feeGrowthGlobal1X128; // SLOAD for gas optimization
     uint128 _maxLiquidityPerTick = maxLiquidityPerTick; // SLOAD for gas optimization
-    
+
     // if we need to update the ticks, do it
     bool flippedLower;
     bool flippedUpper;
@@ -736,6 +741,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
 
   /// @inheritdoc IKatanaV3PoolActions
   function flash(address recipient, uint256 amount0, uint256 amount1, bytes calldata data) external override lock {
+    require(IKatanaV3Factory(factory).flashLoanEnabled(), "FD");
+
     uint128 _liquidity = liquidity;
     require(_liquidity > 0, "L");
 
