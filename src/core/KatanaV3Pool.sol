@@ -131,11 +131,12 @@ contract KatanaV3Pool is IKatanaV3Pool {
   /// @inheritdoc IKatanaV3PoolImmutablesInitializable
   function initializeImmutables(address factory_, address token0_, address token1_, uint24 fee_, int24 tickSpacing_)
     public
+    virtual
     override
   {
     require(!_immutablesInitialized);
 
-    require(factory_ == factory && factory_ == msg.sender, "IF");
+    require(factory_ == factory, "IF");
 
     (token0, token1, fee, tickSpacing) = (token0_, token1_, fee_, tickSpacing_);
 
