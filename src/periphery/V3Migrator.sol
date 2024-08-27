@@ -38,7 +38,7 @@ contract V3Migrator is IV3Migrator, PeripheryImmutableState, Multicall, SelfPerm
     require(params.percentageToMigrate <= 100, "Percentage too large");
 
     // burn v2 liquidity to this address
-    IKatanaV2Pair(params.pair).transferFrom(msg.sender, params.pair, params.liquidityToMigrate);
+    TransferHelper.safeTransferFrom(params.pair, msg.sender, params.pair, params.liquidityToMigrate);
     (uint256 amount0V2, uint256 amount1V2) = IKatanaV2Pair(params.pair).burn(address(this));
 
     // calculate the amounts to migrate to v3

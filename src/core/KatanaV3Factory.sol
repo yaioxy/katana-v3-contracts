@@ -35,6 +35,15 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
     _initialized = true;
   }
 
+  modifier onlyOwner() {
+    _checkOwner();
+    _;
+  }
+
+  function _checkOwner() internal view virtual {
+    require(owner == msg.sender, "KatanaV3Factory: FORBIDDEN");
+  }
+
   function initialize(address owner_, address treasury_) external {
     require(!_initialized);
 
@@ -77,34 +86,31 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
   }
 
   /// @inheritdoc IKatanaV3Factory
-  function setOwner(address _owner) external override {
-    require(msg.sender == owner);
+  function setOwner(address _owner) external override onlyOwner {
     emit OwnerChanged(owner, _owner);
     owner = _owner;
   }
 
-  function setTreasury(address _treasury) external override {
-    require(msg.sender == owner);
+  function setTreasury(address _treasury) external override onlyOwner {
+    require(_treasury != address(0), "KatanaV3Factory: INVALID_TREASURY");
     emit TreasuryChanged(treasury, _treasury);
     treasury = _treasury;
   }
 
-  function toggleFlashLoanPermission() external override {
-    require(msg.sender == owner);
+  function toggleFlashLoanPermission() external override onlyOwner {
     flashLoanEnabled = !flashLoanEnabled;
     emit FlashLoanPermissionUpdated(flashLoanEnabled);
   }
 
   /// @inheritdoc IKatanaV3Factory
-  function enableFeeAmount(uint24 fee, int24 tickSpacing, uint16 feeProtocol) public override {
-    require(msg.sender == owner);
-    require(fee < 1000000);
+  function enableFeeAmount(uint24 fee, int24 tickSpacing, uint16 feeProtocol) public override onlyOwner {
+    require(fee < 1000000, "KatanaV3Factory: FEE_TOO_HIGH");
     // tick spacing is capped at 16384 to prevent the situation where tickSpacing is so large that
     // TickBitmap#nextInitializedTickWithinOneWord overflows int24 container from a valid tick
     // 16384 ticks represents a >5x price change with ticks of 1 bips
-    require(tickSpacing > 0 && tickSpacing < 16384);
+    require(tickSpacing > 0 && tickSpacing < 16384, "KatanaV3Factory: INVALID_TICK_SPACING");
     require((feeProtocol & 255) < (feeProtocol >> 8));
-    require(feeAmountTickSpacing[fee] == 0);
+    require(feeAmountTickSpacing[fee] == 0, "KatanaV3Factory: FEE_AMOUNT_ALREADY_ENABLED");
 
     _enableFeeAmount(fee, tickSpacing, feeProtocol);
   }

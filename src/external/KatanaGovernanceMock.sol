@@ -12,9 +12,9 @@ contract KatanaGovernanceMock is IKatanaGovernance {
   bool private immutable _defaultPermission;
   mapping(address => mapping(address => uint256)) private _permission;
 
-  constructor(address router, address postionManager, bool defaultPermission) {
+  constructor(address router, address positionManager, bool defaultPermission) {
     _router = router;
-    _positionManager = postionManager;
+    _positionManager = positionManager;
     _defaultPermission = defaultPermission;
   }
 
@@ -37,8 +37,8 @@ contract KatanaGovernanceMock is IKatanaGovernance {
     _router = router;
   }
 
-  function setPositionManager(address postionManager) external {
-    _positionManager = postionManager;
+  function setPositionManager(address positionManager) external {
+    _positionManager = positionManager;
   }
 
   function getRouter() external view override returns (address) {
