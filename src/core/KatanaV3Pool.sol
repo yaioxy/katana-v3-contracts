@@ -69,7 +69,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
     uint128 token1;
   }
   /// @inheritdoc IKatanaV3PoolState
-
+  /// @dev Deprecated. The protocol fees are now transferred to the treasury on every swap.
   ProtocolFees public override protocolFees;
 
   /// @inheritdoc IKatanaV3PoolState
@@ -724,10 +724,6 @@ contract KatanaV3Pool is IKatanaV3Pool {
     // update fee growth global
     if (zeroForOne) feeGrowthGlobal0X128 = state.feeGrowthGlobalX128;
     else feeGrowthGlobal1X128 = state.feeGrowthGlobalX128;
-    // transfer protocol fees to the treasury
-    if (state.protocolFee > 0) {
-      TransferHelper.safeTransfer(tokenIn, IKatanaV3Factory(factory).treasury(), state.protocolFee);
-    }
 
     (amount0, amount1) = zeroForOne == exactInput
       ? (amountSpecified - state.amountSpecifiedRemaining, state.amountCalculated)
@@ -746,6 +742,11 @@ contract KatanaV3Pool is IKatanaV3Pool {
       uint256 balance1Before = balance1();
       IKatanaV3SwapCallback(msg.sender).katanaV3SwapCallback(amount0, amount1, data);
       require(balance1Before.add(uint256(amount1)) <= balance1(), "IIA");
+    }
+
+    // transfer protocol fees to the treasury
+    if (state.protocolFee > 0) {
+      TransferHelper.safeTransfer(tokenIn, IKatanaV3Factory(factory).treasury(), state.protocolFee);
     }
 
     emit Swap(msg.sender, recipient, amount0, amount1, state.sqrtPriceX96, state.liquidity, state.tick);
