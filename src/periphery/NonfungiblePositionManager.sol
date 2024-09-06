@@ -59,7 +59,7 @@ contract NonfungiblePositionManager is
   }
 
   // position's burned liquidity is owed in token0/token1 units
-  struct BurnedLiquidtyOwed {
+  struct BurnedLiquidityOwed {
     uint128 token0;
     uint128 token1;
   }
@@ -88,9 +88,9 @@ contract NonfungiblePositionManager is
   address private immutable _tokenDescriptor;
 
   /// @dev How many tokens from burning liquidity are owed to the position
-  mapping(uint256 => BurnedLiquidtyOwed) private _burnedLiquidityOwed;
+  mapping(uint256 => BurnedLiquidityOwed) private _burnedLiquidityOwed;
 
-  /// @dev How many tokens are collected by the position, as of the last colection
+  /// @dev How many tokens are collected by the position, as of the last collection
   mapping(uint256 => CollectedFees) private _collectedFees;
 
   /// @dev Whether this contract has been initialized
@@ -321,7 +321,7 @@ contract NonfungiblePositionManager is
 
     require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, "Price slippage check");
 
-    BurnedLiquidtyOwed storage burnedLiquidityOwed = _burnedLiquidityOwed[params.tokenId];
+    BurnedLiquidityOwed storage burnedLiquidityOwed = _burnedLiquidityOwed[params.tokenId];
     burnedLiquidityOwed.token0 += uint128(amount0);
     burnedLiquidityOwed.token1 += uint128(amount1);
 
@@ -403,7 +403,7 @@ contract NonfungiblePositionManager is
     (amount0, amount1) = pool.collect(recipient, position.tickLower, position.tickUpper, amount0Collect, amount1Collect);
 
     CollectedFees storage fees = _collectedFees[params.tokenId];
-    BurnedLiquidtyOwed storage burnedLiquidityOwed = _burnedLiquidityOwed[params.tokenId];
+    BurnedLiquidityOwed storage burnedLiquidityOwed = _burnedLiquidityOwed[params.tokenId];
     // we record only the fees collected, not wholly the tokens owed
     fees.token0 += amount0 - burnedLiquidityOwed.token0;
     fees.token1 += amount1 - burnedLiquidityOwed.token1;

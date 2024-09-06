@@ -68,6 +68,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
     uint128 token0;
     uint128 token1;
   }
+
   /// @inheritdoc IKatanaV3PoolState
   /// @dev Deprecated. The protocol fees are now transferred to the treasury on every swap.
   ProtocolFees public override protocolFees;
