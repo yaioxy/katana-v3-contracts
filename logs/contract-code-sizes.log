@@ -35,7 +35,7 @@
 | NFTDescriptor                      |   23,372 |      1,204 |
 | NFTSVG                             |       86 |     24,490 |
 | NonfungiblePositionManager         |   24,452 |        124 |
-| NonfungibleTokenPositionDescriptor |    5,187 |     19,389 |
+| NonfungibleTokenPositionDescriptor |    5,097 |     19,479 |
 | Oracle                             |       86 |     24,490 |
 | OracleLibrary                      |       86 |     24,490 |
 | PairFlash                          |    5,428 |     19,148 |
