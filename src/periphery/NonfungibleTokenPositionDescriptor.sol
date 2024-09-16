@@ -16,18 +16,16 @@ import "./libraries/TokenRatioSortOrder.sol";
 /// @title Describes NFT token positions
 /// @notice Produces a string containing the data URI for a JSON metadata string
 contract NonfungibleTokenPositionDescriptor is INonfungibleTokenPositionDescriptor {
-  address private constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-  address private constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-  address private constant USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-  address private constant TBTC = 0x8dAEBADE922dF735c38C80C7eBD708Af50815fAa;
-  address private constant WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
+  address private constant USDC = 0x0B7007c13325C48911F73A2daD5FA5dCBf808aDc;
+  address private constant WETH = 0xc99a6A985eD2Cac1ef41640596C5A5f9F4E19Ef5;
+  address private constant WBTC = 0x7E73630F81647bCFD7B1F2C04c1C662D17d4577e;
 
-  address public immutable WETH9;
+  address public immutable WRON;
   /// @dev A null-terminated string
   bytes32 public immutable nativeCurrencyLabelBytes;
 
-  constructor(address _WETH9, bytes32 _nativeCurrencyLabelBytes) {
-    WETH9 = _WETH9;
+  constructor(address _WRON, bytes32 _nativeCurrencyLabelBytes) {
+    WRON = _WRON;
     nativeCurrencyLabelBytes = _nativeCurrencyLabelBytes;
   }
 
@@ -70,10 +68,10 @@ contract NonfungibleTokenPositionDescriptor is INonfungibleTokenPositionDescript
         tokenId: tokenId,
         quoteTokenAddress: quoteTokenAddress,
         baseTokenAddress: baseTokenAddress,
-        quoteTokenSymbol: quoteTokenAddress == WETH9
+        quoteTokenSymbol: quoteTokenAddress == WRON
           ? nativeCurrencyLabel()
           : SafeERC20Namer.tokenSymbol(quoteTokenAddress),
-        baseTokenSymbol: baseTokenAddress == WETH9 ? nativeCurrencyLabel() : SafeERC20Namer.tokenSymbol(baseTokenAddress),
+        baseTokenSymbol: baseTokenAddress == WRON ? nativeCurrencyLabel() : SafeERC20Namer.tokenSymbol(baseTokenAddress),
         quoteTokenDecimals: IERC20Metadata(quoteTokenAddress).decimals(),
         baseTokenDecimals: IERC20Metadata(baseTokenAddress).decimals(),
         flipRatio: _flipRatio,
@@ -92,18 +90,14 @@ contract NonfungibleTokenPositionDescriptor is INonfungibleTokenPositionDescript
   }
 
   function tokenRatioPriority(address token, uint256 chainId) public view returns (int256) {
-    if (token == WETH9) {
+    if (token == WRON) {
       return TokenRatioSortOrder.DENOMINATOR;
     }
-    if (chainId == 1) {
+    if (chainId == 2020) {
       if (token == USDC) {
         return TokenRatioSortOrder.NUMERATOR_MOST;
-      } else if (token == USDT) {
+      } else if (token == WETH) {
         return TokenRatioSortOrder.NUMERATOR_MORE;
-      } else if (token == DAI) {
-        return TokenRatioSortOrder.NUMERATOR;
-      } else if (token == TBTC) {
-        return TokenRatioSortOrder.DENOMINATOR_MORE;
       } else if (token == WBTC) {
         return TokenRatioSortOrder.DENOMINATOR_MOST;
       } else {
