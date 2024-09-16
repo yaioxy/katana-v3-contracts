@@ -5,9 +5,7 @@ import "./interfaces/IKatanaV3Factory.sol";
 
 import "./KatanaV3PoolDeployer.sol";
 
-import "./KatanaV3Pool.sol";
-
-import "../external/libraries/AuthorizationLib.sol";
+import "../external/interfaces/IKatanaGovernance.sol";
 
 /// @title Canonical Katana V3 factory
 /// @notice Deploys Katana V3 pools and manages ownership and control over pool protocol fees
@@ -18,8 +16,6 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
   address public override treasury;
   /// @inheritdoc IKatanaV3Factory
   bool public override flashLoanEnabled;
-  /// @dev Whether the factory has been initialized
-  bool private _initialized;
 
   /// @inheritdoc IKatanaV3Factory
   mapping(uint24 => int24) public override feeAmountTickSpacing;
@@ -28,9 +24,9 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
   /// @inheritdoc IKatanaV3Factory
   mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
 
-  constructor(address beacon) KatanaV3PoolDeployer(beacon) {
+  constructor() {
     // disable initialization
-    _initialized = true;
+    beacon = address(1);
   }
 
   modifier onlyOwner() {
@@ -42,8 +38,12 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
     require(owner == msg.sender, "KatanaV3Factory: FORBIDDEN");
   }
 
-  function initialize(address owner_, address treasury_) external {
-    require(!_initialized);
+  function initialize(address beacon_, address owner_, address treasury_) external {
+    require(beacon == address(0), "KatanaV3Factory: ALREADY_INITIALIZED");
+
+    // this beacon is treated as immutable
+    // so there is no need to emit an event
+    beacon = beacon_;
 
     owner = owner_;
     emit OwnerChanged(address(0), owner_);
@@ -62,13 +62,11 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
     // swap fee 1% = 0.85% for LP + 0.15% for protocol
     // tick spacing of 200, approximately 2.02% between initializable ticks
     _enableFeeAmount(10000, 200, 15 | (100 << 8));
-
-    _initialized = true;
   }
 
   /// @inheritdoc IKatanaV3Factory
   function createPool(address tokenA, address tokenB, uint24 fee) external override returns (address pool) {
-    AuthorizationLib.checkPositionManager(owner);
+    require(msg.sender == IKatanaGovernance(owner).getPositionManager(), "KatanaV3Factory: INVALID_POSITION_MANAGER");
 
     require(tokenA != tokenB);
     (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);

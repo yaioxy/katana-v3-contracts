@@ -8,7 +8,7 @@ import "./interfaces/IKatanaV3PoolBeaconImmutables.sol";
 
 abstract contract KatanaV3PoolDeployer is IKatanaV3PoolDeployer {
   /// @inheritdoc IKatanaV3PoolDeployer
-  address public immutable override BEACON;
+  address public override beacon;
 
   struct Parameters {
     address factory;
@@ -20,10 +20,6 @@ abstract contract KatanaV3PoolDeployer is IKatanaV3PoolDeployer {
 
   /// @inheritdoc IKatanaV3PoolDeployer
   Parameters public override parameters;
-
-  constructor(address beacon) {
-    BEACON = beacon;
-  }
 
   /// @dev Deploys a pool with the given parameters by transiently setting the parameters storage slot and then
   /// clearing it after deploying the pool.
@@ -37,7 +33,7 @@ abstract contract KatanaV3PoolDeployer is IKatanaV3PoolDeployer {
     returns (address pool)
   {
     parameters = Parameters({ factory: factory, token0: token0, token1: token1, fee: fee, tickSpacing: tickSpacing });
-    bytes memory creationCode = IKatanaV3PoolBeaconImmutables(BEACON).POOL_PROXY_INIT_CODE();
+    bytes memory creationCode = IKatanaV3PoolBeaconImmutables(beacon).POOL_PROXY_INIT_CODE();
     bytes32 salt = keccak256(abi.encode(token0, token1, fee));
     pool = Create2.deploy(0, salt, creationCode);
     delete parameters;

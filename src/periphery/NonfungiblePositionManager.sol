@@ -93,25 +93,18 @@ contract NonfungiblePositionManager is
   /// @dev How many tokens are collected by the position, as of the last collection
   mapping(uint256 => CollectedFees) private _collectedFees;
 
-  /// @dev Whether this contract has been initialized
-  bool private _initialized;
-
   constructor(address _factory, address _WETH9, address _tokenDescriptor_)
     ERC721Permit("Katana V3 Positions NFT-V1", "KATANA-V3-POS", "1")
     PeripheryImmutableState(_factory, _WETH9)
   {
     _tokenDescriptor = _tokenDescriptor_;
-    // disable initialization
-    _initialized = true;
   }
 
   function initialize() external {
-    require(!_initialized);
+    require(_nextId == 0, "Already initialized");
 
     _nextId = 1;
     _nextPoolId = 1;
-
-    _initialized = true;
   }
 
   /// @inheritdoc IERC165

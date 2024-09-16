@@ -25,7 +25,7 @@ import "./interfaces/callback/IKatanaV3MintCallback.sol";
 import "./interfaces/callback/IKatanaV3SwapCallback.sol";
 import "./interfaces/callback/IKatanaV3FlashCallback.sol";
 
-import "../external/libraries/AuthorizationLib.sol";
+import "../external/interfaces/IKatanaGovernance.sol";
 
 contract KatanaV3Pool is IKatanaV3Pool {
   using LowGasSafeMath for uint256;
@@ -86,9 +86,11 @@ contract KatanaV3Pool is IKatanaV3Pool {
   Oracle.Observation[65535] public override observations;
 
   /// @inheritdoc IKatanaV3PoolImmutables
-  address public immutable override factory;
+  address public override factory;
   /// @inheritdoc IKatanaV3PoolImmutables
-  address public immutable override governance;
+  address public override governance;
+  /// @inheritdoc IKatanaV3PoolImmutables
+  address public override positionManager;
 
   // These below immutable constants are set when deploying the beacon proxy of the pool and
   // cannot be changed unless upgraded.
@@ -103,8 +105,6 @@ contract KatanaV3Pool is IKatanaV3Pool {
   uint24 public override fee;
   /// @inheritdoc IKatanaV3PoolImmutables
   int24 public override tickSpacing;
-  /// @dev The contract is initialized with the immutable parameters
-  bool private _immutablesInitialized;
 
   /// @dev Mutually exclusive reentrancy protection into the pool to/from a method. This method also prevents entrance
   /// to a function before the pool is initialized. The reentrancy guard is required throughout the contract because
@@ -122,28 +122,26 @@ contract KatanaV3Pool is IKatanaV3Pool {
     _;
   }
 
-  constructor(address factory_, address governance_) {
-    factory = factory_;
-    governance = governance_;
+  constructor() {
     // disable immutables initialization
-    _immutablesInitialized = true;
+    factory = address(1);
   }
 
-  /// @inheritdoc IKatanaV3PoolImmutablesInitializable
+  /// @inheritdoc IKatanaV3PoolImmutables
   function initializeImmutables(address factory_, address token0_, address token1_, uint24 fee_, int24 tickSpacing_)
     public
     virtual
     override
   {
-    require(!_immutablesInitialized);
+    require(factory == address(0), "AII");
 
-    require(factory_ == factory, "IF");
+    (factory, token0, token1, fee, tickSpacing) = (factory_, token0_, token1_, fee_, tickSpacing_);
 
-    (token0, token1, fee, tickSpacing) = (token0_, token1_, fee_, tickSpacing_);
+    // cache these immutable addresses for gas savings when swaps, mints, or burns are performed
+    governance = IKatanaV3Factory(factory_).owner();
+    positionManager = IKatanaGovernance(governance).getPositionManager();
 
     maxLiquidityPerTick = Tick.tickSpacingToMaxLiquidityPerTick(tickSpacing_);
-
-    _immutablesInitialized = true;
   }
 
   /// @dev Common checks for valid tick inputs.
@@ -427,7 +425,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
     lock
     returns (uint256 amount0, uint256 amount1)
   {
-    AuthorizationLib.checkPositionManager(governance);
+    require(msg.sender == positionManager, "IPM");
 
     require(amount > 0);
     (, int256 amount0Int, int256 amount1Int) = _modifyPosition(
@@ -570,7 +568,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
   ) external override returns (int256 amount0, int256 amount1) {
     // when quoting, we don't need to check authorization
     if (tx.origin != address(0)) {
-      AuthorizationLib.checkRouter(governance);
+      require(msg.sender == IKatanaGovernance(governance).getRouter(), "IR");
     }
 
     require(amountSpecified != 0, "AS");

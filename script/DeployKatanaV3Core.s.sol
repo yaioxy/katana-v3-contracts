@@ -27,21 +27,17 @@ abstract contract DeployKatanaV3Core is Script {
   function run() public virtual {
     vm.startBroadcast();
 
-    address predictedFactory = vm.computeCreateAddress(sender, vm.getNonce(sender) + 3);
-    vm.label(predictedFactory, "PredictedFactory");
-
-    poolImplementation = address(new KatanaV3Pool(predictedFactory, governance));
+    poolImplementation = address(new KatanaV3Pool());
     beacon = address(new KatanaV3PoolBeacon(poolImplementation));
 
-    address factoryImplementation = address(new KatanaV3Factory(beacon));
+    address factoryImplementation = address(new KatanaV3Factory());
     factory = address(
       new TransparentUpgradeableProxy(
         factoryImplementation,
         proxyAdmin,
-        abi.encodeWithSelector(KatanaV3Factory.initialize.selector, governance, treasury)
+        abi.encodeWithSelector(KatanaV3Factory.initialize.selector, beacon, governance, treasury)
       )
     );
-    require(factory == predictedFactory, "Factory address mismatch");
 
     console.log("KatanaV3Factory deployed:", factory);
 

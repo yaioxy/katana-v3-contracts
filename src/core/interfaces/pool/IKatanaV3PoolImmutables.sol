@@ -4,6 +4,16 @@ pragma solidity >=0.5.0;
 /// @title Pool state that never changes
 /// @notice These parameters are fixed for a pool forever, i.e., the methods will always return the same values
 interface IKatanaV3PoolImmutables {
+  /// @notice Initializes the pool with immutable-treated parameters
+  /// @dev This function is only call once during deployment with the pool's immutable parameters
+  /// @param factory_ The contract that deployed the pool, which must adhere to the IKatanaV3Factory interface
+  /// @param token0_ The first of the two tokens of the pool, sorted by address
+  /// @param token1_ The second of the two tokens of the pool, sorted by address
+  /// @param fee_ The pool's fee in hundredths of a bip, i.e. 1e-6
+  /// @param tickSpacing_ The pool tick spacing
+  function initializeImmutables(address factory_, address token0_, address token1_, uint24 fee_, int24 tickSpacing_)
+    external;
+
   /// @notice The contract that deployed the pool, which must adhere to the IKatanaV3Factory interface
   /// @return The contract address
   function factory() external view returns (address);
@@ -11,6 +21,10 @@ interface IKatanaV3PoolImmutables {
   /// @notice The governance contract, which controls the protocol
   /// @return The contract address
   function governance() external view returns (address);
+
+  /// @notice The contract that manages the pool's positions
+  /// @return The contract address
+  function positionManager() external view returns (address);
 
   /// @notice The first of the two tokens of the pool, sorted by address
   /// @return The token contract address
