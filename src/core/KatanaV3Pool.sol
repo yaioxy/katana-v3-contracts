@@ -49,8 +49,10 @@ contract KatanaV3Pool is IKatanaV3Pool {
     uint16 observationCardinality;
     // the next maximum number of observations to store, triggered in observations.write
     uint16 observationCardinalityNext;
-    // the current protocol fee as a ratio of the swap fee: first byte is numerator, second byte is denominator
-    uint16 feeProtocol;
+    // the numerator of the current protocol fee which is a ratio of the swap fee
+    uint8 feeProtocolNum;
+    // the denominator of the current protocol fee which is a ratio of the swap fee
+    uint8 feeProtocolDen;
     // whether the pool is locked
     bool unlocked;
   }
@@ -248,13 +250,16 @@ contract KatanaV3Pool is IKatanaV3Pool {
 
     (uint16 cardinality, uint16 cardinalityNext) = observations.initialize(_blockTimestamp());
 
+    (uint8 feeProtocolNum, uint8 feeProtocolDen) = IKatanaV3Factory(factory).feeAmountProtocol(fee);
+
     slot0 = Slot0({
       sqrtPriceX96: sqrtPriceX96,
       tick: tick,
       observationIndex: 0,
       observationCardinality: cardinality,
       observationCardinalityNext: cardinalityNext,
-      feeProtocol: IKatanaV3Factory(factory).feeAmountProtocol(fee),
+      feeProtocolNum: feeProtocolNum,
+      feeProtocolDen: feeProtocolDen,
       unlocked: true
     });
 
@@ -492,7 +497,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
     // the swap fee in hundredths of a bip
     uint24 fee;
     // the protocol fee for the input token
-    uint16 feeProtocol;
+    uint8 feeProtocolNum;
+    uint8 feeProtocolDen;
     // the spacing between usable ticks
     int24 tickSpacing;
     // liquidity at the beginning of the swap
@@ -573,7 +579,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
       liquidityStart: liquidity,
       blockTimestamp: _blockTimestamp(),
       fee: fee,
-      feeProtocol: slot0Start.feeProtocol,
+      feeProtocolNum: slot0Start.feeProtocolNum,
+      feeProtocolDen: slot0Start.feeProtocolDen,
       tickSpacing: tickSpacing,
       secondsPerLiquidityCumulativeX128: 0,
       tickCumulative: 0,
@@ -631,8 +638,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
       }
 
       // if the protocol fee is on, calculate how much is owed, decrement feeAmount, and increment protocolFee
-      if (cache.feeProtocol > 0) {
-        uint256 delta = FullMath.mulDiv(step.feeAmount, cache.feeProtocol & 255, cache.feeProtocol >> 8);
+      if (cache.feeProtocolNum > 0) {
+        uint256 delta = FullMath.mulDiv(step.feeAmount, cache.feeProtocolNum, cache.feeProtocolDen);
         step.feeAmount -= delta;
         state.protocolFee += uint128(delta);
       }
@@ -772,12 +779,12 @@ contract KatanaV3Pool is IKatanaV3Pool {
       paid1 = balance1After - balance1Before;
 
       if (paid0 > 0) {
-        uint256 fees0 = FullMath.mulDiv(paid0, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
+        uint256 fees0 = FullMath.mulDiv(paid0, slot0.feeProtocolNum, slot0.feeProtocolDen);
         if (fees0 > 0) TransferHelper.safeTransfer(_token0, treasury, fees0);
         feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
       }
       if (paid1 > 0) {
-        uint256 fees1 = FullMath.mulDiv(paid1, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
+        uint256 fees1 = FullMath.mulDiv(paid1, slot0.feeProtocolNum, slot0.feeProtocolDen);
         if (fees1 > 0) TransferHelper.safeTransfer(_token1, treasury, fees1);
         feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
       }

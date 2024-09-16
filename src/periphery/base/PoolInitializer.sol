@@ -27,7 +27,7 @@ abstract contract PoolInitializer is IPoolInitializer, PeripheryImmutableState {
       pool = IKatanaV3Factory(factory).createPool(token0, token1, fee);
       IKatanaV3Pool(pool).initialize(sqrtPriceX96);
     } else {
-      (uint160 sqrtPriceX96Existing,,,,,,) = IKatanaV3Pool(pool).slot0();
+      (uint160 sqrtPriceX96Existing,,,,,,,) = IKatanaV3Pool(pool).slot0();
       if (sqrtPriceX96Existing == 0) {
         IKatanaV3Pool(pool).initialize(sqrtPriceX96);
       }

@@ -14,7 +14,8 @@ interface IKatanaV3PoolState {
   /// observationIndex The index of the last oracle observation that was written,
   /// observationCardinality The current maximum number of observations stored in the pool,
   /// observationCardinalityNext The next maximum number of observations, to be updated when the observation.
-  /// feeProtocol The protocol fee as a ratio of the swap fee.
+  /// feeProtocolNum the numerator of the current protocol fee which is a ratio (fraction < 1) of the swap fee
+  /// feeProtocolDen the denominator of the current protocol fee which is a ratio (fraction < 1) of the swap fee
   /// Encoded as a fraction, where first byte (8 bit value) is the numerator and the second byte is the denominator.
   /// unlocked Whether the pool is currently locked to reentrancy
   function slot0()
@@ -26,7 +27,8 @@ interface IKatanaV3PoolState {
       uint16 observationIndex,
       uint16 observationCardinality,
       uint16 observationCardinalityNext,
-      uint16 feeProtocol,
+      uint8 feeProtocolNum,
+      uint8 feeProtocolDen,
       bool unlocked
     );
 

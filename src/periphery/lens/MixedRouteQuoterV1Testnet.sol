@@ -60,7 +60,7 @@ contract MixedRouteQuoterV1Testnet is IMixedRouteQuoterV1, IKatanaV3SwapCallback
       amount0Delta > 0 ? (tokenIn < tokenOut, uint256(-amount1Delta)) : (tokenOut < tokenIn, uint256(-amount0Delta));
 
     IKatanaV3Pool pool = getPool(tokenIn, tokenOut, fee);
-    (uint160 v3SqrtPriceX96After, int24 tickAfter,,,,,) = pool.slot0();
+    (uint160 v3SqrtPriceX96After, int24 tickAfter,,,,,,) = pool.slot0();
 
     if (isExactInput) {
       assembly {
@@ -99,7 +99,7 @@ contract MixedRouteQuoterV1Testnet is IMixedRouteQuoterV1, IKatanaV3SwapCallback
   {
     int24 tickBefore;
     int24 tickAfter;
-    (, tickBefore,,,,,) = pool.slot0();
+    (, tickBefore,,,,,,) = pool.slot0();
     (amount, sqrtPriceX96After, tickAfter) = parseRevertReason(reason);
 
     initializedTicksCrossed = pool.countInitializedTicksCrossed(tickBefore, tickAfter);
