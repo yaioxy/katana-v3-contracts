@@ -5,7 +5,6 @@ import "./pool/IKatanaV3PoolImmutables.sol";
 import "./pool/IKatanaV3PoolState.sol";
 import "./pool/IKatanaV3PoolDerivedState.sol";
 import "./pool/IKatanaV3PoolActions.sol";
-import "./pool/IKatanaV3PoolOwnerActions.sol";
 import "./pool/IKatanaV3PoolEvents.sol";
 
 /// @title The interface for a Katana V3 Pool
@@ -17,6 +16,5 @@ interface IKatanaV3Pool is
   IKatanaV3PoolState,
   IKatanaV3PoolDerivedState,
   IKatanaV3PoolActions,
-  IKatanaV3PoolOwnerActions,
   IKatanaV3PoolEvents
 { }

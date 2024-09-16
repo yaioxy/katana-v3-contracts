@@ -119,9 +119,6 @@ contract KatanaV3PoolTest is Test {
     for (uint256 i = 0; i < 3; ++i) {
       KatanaV3Pool pool = pools[i];
       pool.swap(address(this), true, 10_000_000, TickMath.MIN_SQRT_RATIO + 1, "");
-      (uint128 protocolFee0, uint128 protocolFee1) = pool.protocolFees();
-      assertEq(uint256(protocolFee0), 0);
-      assertEq(uint256(protocolFee1), 0);
       console.log(ERC20Mock(token0).balanceOf(treasury), ERC20Mock(token1).balanceOf(treasury));
     }
   }

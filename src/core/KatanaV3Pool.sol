@@ -63,16 +63,6 @@ contract KatanaV3Pool is IKatanaV3Pool {
   /// @inheritdoc IKatanaV3PoolState
   uint256 public override feeGrowthGlobal1X128;
 
-  // accumulated protocol fees in token0/token1 units
-  struct ProtocolFees {
-    uint128 token0;
-    uint128 token1;
-  }
-
-  /// @inheritdoc IKatanaV3PoolState
-  /// @dev Deprecated. The protocol fees are now transferred to the treasury on every swap.
-  ProtocolFees public override protocolFees;
-
   /// @inheritdoc IKatanaV3PoolState
   uint128 public override liquidity;
 
@@ -114,12 +104,6 @@ contract KatanaV3Pool is IKatanaV3Pool {
     slot0.unlocked = false;
     _;
     slot0.unlocked = true;
-  }
-
-  /// @dev Prevents calling a function from anyone except the address returned by IKatanaV3Factory#owner()
-  modifier onlyFactoryOwner() {
-    require(msg.sender == IKatanaV3Factory(factory).owner());
-    _;
   }
 
   constructor() {
@@ -800,45 +784,5 @@ contract KatanaV3Pool is IKatanaV3Pool {
     }
 
     emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
-  }
-
-  /// @inheritdoc IKatanaV3PoolOwnerActions
-  function setFeeProtocol(uint8 feeProtocolNumerator, uint8 feeProtocolDenominator)
-    external
-    override
-    lock
-    onlyFactoryOwner
-  {
-    require(feeProtocolNumerator < feeProtocolDenominator);
-    uint16 feeProtocolOld = slot0.feeProtocol;
-    slot0.feeProtocol = uint16(feeProtocolNumerator) | (uint16(feeProtocolDenominator) << 8);
-    emit SetFeeProtocol(
-      uint8(feeProtocolOld & 255), uint8(feeProtocolOld >> 8), feeProtocolNumerator, feeProtocolDenominator
-    );
-  }
-
-  /// @inheritdoc IKatanaV3PoolOwnerActions
-  function collectProtocol(address recipient, uint128 amount0Requested, uint128 amount1Requested)
-    external
-    override
-    lock
-    onlyFactoryOwner
-    returns (uint128 amount0, uint128 amount1)
-  {
-    amount0 = amount0Requested > protocolFees.token0 ? protocolFees.token0 : amount0Requested;
-    amount1 = amount1Requested > protocolFees.token1 ? protocolFees.token1 : amount1Requested;
-
-    if (amount0 > 0) {
-      if (amount0 == protocolFees.token0) amount0--; // ensure that the slot is not cleared, for gas savings
-      protocolFees.token0 -= amount0;
-      TransferHelper.safeTransfer(token0, recipient, amount0);
-    }
-    if (amount1 > 0) {
-      if (amount1 == protocolFees.token1) amount1--; // ensure that the slot is not cleared, for gas savings
-      protocolFees.token1 -= amount1;
-      TransferHelper.safeTransfer(token1, recipient, amount1);
-    }
-
-    emit CollectProtocol(msg.sender, recipient, amount0, amount1);
   }
 }
