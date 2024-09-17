@@ -19,7 +19,7 @@
 | FixedPoint96                       |       86 |     24,490 |
 | FullMath                           |       86 |     24,490 |
 | HexStrings                         |       86 |     24,490 |
-| KatanaGovernanceMock               |    3,403 |     21,173 |
+| KatanaGovernanceMock               |    3,479 |     21,097 |
 | KatanaInterfaceMulticall           |    1,295 |     23,281 |
 | KatanaV2Library                    |       86 |     24,490 |
 | KatanaV2LibraryTestnet             |       86 |     24,490 |
