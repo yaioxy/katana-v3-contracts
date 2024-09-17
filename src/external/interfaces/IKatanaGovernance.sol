@@ -19,9 +19,13 @@ interface IKatanaGovernance {
   event PermissionUpdated(
     address indexed by, address indexed token, uint40 whitelistUntil, address[] allowed, bool[] statuses
   );
+  /// @dev Emitted when allowed actor list is updated.
+  event AllowedActorUpdated(address indexed actor, bool allowed);
 
   /**
    * @dev Executes calls to the Katana V3 factory.
+   *
+   * - Requirements: Caller must be the owner.
    *
    * @param data The array of encoded function calls.
    * @return results The array of encoded results.
@@ -38,6 +42,17 @@ interface IKatanaGovernance {
   function setRouter(address router) external;
 
   /**
+   * @dev Sets an address is allowed/disallowed to skip authorization checks.
+   * To check if an address is allowed, see `isAllowedActor` function.
+   *
+   * - Requirements: Caller must be the owner.
+   *
+   * @param actor The address to be allowed/disallowed.
+   * @param allowed True if the address is allowed, otherwise false.
+   */
+  function setAllowedActor(address actor, bool allowed) external;
+
+  /**
    * @dev Sets the permission of a token.
    *
    * - Requirements: Caller must be the owner.
@@ -49,15 +64,6 @@ interface IKatanaGovernance {
    */
   function setPermission(address token, uint40 whitelistUntil, address[] calldata alloweds, bool[] calldata statuses)
     external;
-
-  /**
-   * @dev Sets the factory address.
-   *
-   * - Requirements: Caller must be the owner.
-   *
-   * @param factory The address of the factory.
-   */
-  function setFactory(address factory) external;
 
   /**
    * @dev Creates a pair of tokens and sets the permission.
@@ -88,6 +94,12 @@ interface IKatanaGovernance {
    * @notice Gets the Katana V3 nonfungible position manager address.
    */
   function getPositionManager() external view returns (address);
+
+  /**
+   * @notice Whether the account is always skipped from authorization checks.
+   * @dev See `isAuthorized` function.
+   */
+  function isAllowedActor(address account) external view returns (bool);
 
   /**
    * @notice Checks if an account is authorized to interact with a token.

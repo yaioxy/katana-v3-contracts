@@ -12,9 +12,7 @@ contract KatanaGovernanceMock is IKatanaGovernance {
   bool private immutable _defaultPermission;
   mapping(address => mapping(address => uint256)) private _permission;
 
-  constructor(address router, address positionManager, bool defaultPermission) {
-    _router = router;
-    _positionManager = positionManager;
+  constructor(bool defaultPermission) {
     _defaultPermission = defaultPermission;
   }
 
@@ -53,6 +51,10 @@ contract KatanaGovernanceMock is IKatanaGovernance {
     return _positionManager;
   }
 
+  function isAllowedActor(address) external pure override returns (bool) {
+    revert("not implemented");
+  }
+
   function isAuthorized(address[] memory tokens, address account) external view override returns (bool) {
     for (uint256 i = 0; i < tokens.length; ++i) {
       if (!isAuthorized(tokens[i], account)) {
@@ -70,7 +72,7 @@ contract KatanaGovernanceMock is IKatanaGovernance {
     _v3Factory = factory;
   }
 
-  function setFactory(address) external pure override {
+  function setAllowedActor(address, bool) external pure override {
     revert("not implemented");
   }
 

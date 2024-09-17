@@ -13,7 +13,7 @@ contract DeployKatanaV3Local is DeployKatanaV3Periphery {
 
   function setUp() public override {
     proxyAdmin = makeAddr("ProxyAdmin");
-    governance = address(new KatanaGovernanceMock(address(0), address(0), true));
+    governance = address(new KatanaGovernanceMock(true));
     treasury = makeAddr("RoninTreasury");
     wron = address(new ERC20Mock("Wrapped Ronin", "WRON", address(this), 10 ** 9 * 10 ** 9));
     factoryV2 = makeAddr("KatanaV2Factory");
