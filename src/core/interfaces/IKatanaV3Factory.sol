@@ -4,11 +4,6 @@ pragma solidity >=0.5.0;
 /// @title The interface for the Katana V3 Factory
 /// @notice The Katana V3 Factory facilitates creation of Katana V3 pools and control over the protocol fees
 interface IKatanaV3Factory {
-  /// @notice Emitted when the owner of the factory is changed
-  /// @param oldOwner The owner before the owner was changed
-  /// @param newOwner The owner after the owner was changed
-  event OwnerChanged(address indexed oldOwner, address indexed newOwner);
-
   /// @notice Emitted when the treasury address is changed
   /// @param oldTreasury The treasury address before the treasury was changed
   /// @param newTreasury The treasury address after the treasury was changed
@@ -80,11 +75,6 @@ interface IKatanaV3Factory {
   /// are invalid.
   /// @return pool The address of the newly created pool
   function createPool(address tokenA, address tokenB, uint24 fee) external returns (address pool);
-
-  /// @notice Updates the owner of the factory
-  /// @dev Must be called by the current owner
-  /// @param _owner The new owner of the factory
-  function setOwner(address _owner) external;
 
   /// @notice Updates the treasury address
   /// @dev Must be called by the current owner

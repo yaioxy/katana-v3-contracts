@@ -46,12 +46,16 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
   function initialize(address beacon_, address owner_, address treasury_) external {
     require(beacon == address(0), "KatanaV3Factory: ALREADY_INITIALIZED");
 
+    require(beacon_ != address(0), "KatanaV3Factory: INVALID_BEACON");
+    require(owner_ != address(0), "KatanaV3Factory: INVALID_OWNER");
+    require(treasury_ != address(0), "KatanaV3Factory: INVALID_TREASURY");
+
     // this beacon is treated as immutable
     // so there is no need to emit an event
     beacon = beacon_;
 
+    // owner is also treated as immutable
     owner = owner_;
-    emit OwnerChanged(address(0), owner_);
 
     treasury = treasury_;
     emit TreasuryChanged(address(0), treasury_);
@@ -84,12 +88,6 @@ contract KatanaV3Factory is IKatanaV3Factory, KatanaV3PoolDeployer {
     // populate mapping in the reverse direction, deliberate choice to avoid the cost of comparing addresses
     getPool[token1][token0][fee] = pool;
     emit PoolCreated(token0, token1, fee, tickSpacing, pool);
-  }
-
-  /// @inheritdoc IKatanaV3Factory
-  function setOwner(address _owner) external override onlyOwner {
-    emit OwnerChanged(owner, _owner);
-    owner = _owner;
   }
 
   function setTreasury(address _treasury) external override onlyOwner {
