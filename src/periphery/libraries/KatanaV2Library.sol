@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import "@katana/v3-contracts/core/libraries/LowGasSafeMath.sol";
+import "src/core/libraries/LowGasSafeMath.sol";
 import "../interfaces/IKatanaV2Pair.sol";
 
 library KatanaV2Library {

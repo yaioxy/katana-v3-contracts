@@ -4,7 +4,7 @@ pragma solidity ^0.7.6;
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
 import { DeployKatanaV3Periphery } from "../DeployKatanaV3Periphery.s.sol";
-import { MixedRouteQuoterV1Testnet } from "@katana/v3-contracts/periphery/lens/MixedRouteQuoterV1Testnet.sol";
+import { MixedRouteQuoterV1Testnet } from "src/periphery/lens/MixedRouteQuoterV1Testnet.sol";
 
 contract DeployKatanaV3Testnet is DeployKatanaV3Periphery {
   address mixedRouteQuoterV1Testnet;
@@ -16,7 +16,7 @@ contract DeployKatanaV3Testnet is DeployKatanaV3Periphery {
     wron = 0xA959726154953bAe111746E265E6d754F48570E6;
     factoryV2 = 0x86587380C4c815Ba0066c90aDB2B45CC9C15E72c;
 
-    vm.rememberKey(vm.envUint("TESTNET_PK"));
+    sender = vm.rememberKey(vm.envUint("TESTNET_PK"));
 
     super.setUp();
   }

@@ -6,17 +6,16 @@ import { Test, console } from "forge-std/Test.sol";
 
 import { ERC20Mock } from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
-import { IKatanaV3Pool } from "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
-import { INonfungiblePositionManager } from "@katana/v3-contracts/periphery/interfaces/INonfungiblePositionManager.sol";
+import { IKatanaV3Pool } from "src/core/interfaces/IKatanaV3Pool.sol";
+import { INonfungiblePositionManager } from "src/periphery/interfaces/INonfungiblePositionManager.sol";
 
-import { TickMath } from "@katana/v3-contracts/core/libraries/TickMath.sol";
+import { TickMath } from "src/core/libraries/TickMath.sol";
 
-import { KatanaV3Pool } from "@katana/v3-contracts/core/KatanaV3Pool.sol";
-import { KatanaV3Factory } from "@katana/v3-contracts/core/KatanaV3Factory.sol";
-import { KatanaV3FactoryProxy } from "@katana/v3-contracts/core/KatanaV3FactoryProxy.sol";
-import { NonfungiblePositionManager } from "@katana/v3-contracts/periphery/NonfungiblePositionManager.sol";
+import { KatanaV3Pool } from "src/core/KatanaV3Pool.sol";
+import { KatanaV3Factory } from "src/core/KatanaV3Factory.sol";
+import { NonfungiblePositionManager } from "src/periphery/NonfungiblePositionManager.sol";
 
-import { KatanaGovernanceMock } from "@katana/v3-contracts/external/KatanaGovernanceMock.sol";
+import { KatanaGovernanceMock } from "src/external/KatanaGovernanceMock.sol";
 
 import { DeployKatanaV3Local } from "script/local/DeployKatanaV3Local.s.sol";
 
@@ -120,9 +119,6 @@ contract KatanaV3PoolTest is Test {
     for (uint256 i = 0; i < 3; ++i) {
       KatanaV3Pool pool = pools[i];
       pool.swap(address(this), true, 10_000_000, TickMath.MIN_SQRT_RATIO + 1, "");
-      (uint128 protocolFee0, uint128 protocolFee1) = pool.protocolFees();
-      assertEq(uint256(protocolFee0), 0);
-      assertEq(uint256(protocolFee1), 0);
       console.log(ERC20Mock(token0).balanceOf(treasury), ERC20Mock(token1).balanceOf(treasury));
     }
   }

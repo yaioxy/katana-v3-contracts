@@ -6,6 +6,10 @@ pragma solidity >=0.5.0;
 /// @dev This is used to avoid having constructor arguments in the pool contract, which results in the init code hash
 /// of the pool being constant allowing the CREATE2 address of the pool to be cheaply computed on-chain
 interface IKatanaV3PoolDeployer {
+  /// @notice Returns the address of the beacon that pool proxies must be deployed with
+  /// @dev This value MUST be immutable after initialization
+  function beacon() external view returns (address);
+
   /// @notice Get the parameters to be used in constructing the pool, set transiently during pool creation.
   /// @dev Called by the pool constructor to fetch the parameters of the pool
   /// Returns factory The factory address

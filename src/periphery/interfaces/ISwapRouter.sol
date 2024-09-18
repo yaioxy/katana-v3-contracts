@@ -2,7 +2,7 @@
 pragma solidity >=0.7.5;
 pragma abicoder v2;
 
-import "@katana/v3-contracts/core/interfaces/callback/IKatanaV3SwapCallback.sol";
+import "src/core/interfaces/callback/IKatanaV3SwapCallback.sol";
 
 /// @title Router token swapping functionality
 /// @notice Functions for swapping tokens via Katana V3

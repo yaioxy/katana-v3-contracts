@@ -2,9 +2,9 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Factory.sol";
-import "@katana/v3-contracts/core/interfaces/callback/IKatanaV3MintCallback.sol";
-import "@katana/v3-contracts/core/libraries/TickMath.sol";
+import "src/core/interfaces/IKatanaV3Factory.sol";
+import "src/core/interfaces/callback/IKatanaV3MintCallback.sol";
+import "src/core/libraries/TickMath.sol";
 
 import "../libraries/PoolAddress.sol";
 import "../libraries/CallbackValidation.sol";
@@ -55,7 +55,7 @@ abstract contract LiquidityManagement is IKatanaV3MintCallback, PeripheryImmutab
 
     // compute the liquidity amount
     {
-      (uint160 sqrtPriceX96,,,,,,) = pool.slot0();
+      (uint160 sqrtPriceX96,,,,,,,) = pool.slot0();
       uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(params.tickLower);
       uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(params.tickUpper);
 

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity =0.7.6;
 
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Factory.sol";
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/interfaces/IKatanaV3Factory.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
 
 import "./PeripheryImmutableState.sol";
 import "../interfaces/IPoolInitializer.sol";
@@ -27,7 +27,7 @@ abstract contract PoolInitializer is IPoolInitializer, PeripheryImmutableState {
       pool = IKatanaV3Factory(factory).createPool(token0, token1, fee);
       IKatanaV3Pool(pool).initialize(sqrtPriceX96);
     } else {
-      (uint160 sqrtPriceX96Existing,,,,,,) = IKatanaV3Pool(pool).slot0();
+      (uint160 sqrtPriceX96Existing,,,,,,,) = IKatanaV3Pool(pool).slot0();
       if (sqrtPriceX96Existing == 0) {
         IKatanaV3Pool(pool).initialize(sqrtPriceX96);
       }

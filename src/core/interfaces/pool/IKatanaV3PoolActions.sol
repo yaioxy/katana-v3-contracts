@@ -30,12 +30,12 @@ interface IKatanaV3PoolActions {
   /// amount1Requested may be set to zero. To withdraw all tokens owed, caller may pass any value greater than the
   /// actual tokens owed, e.g. type(uint128).max. Tokens owed may be from accumulated swap fees or burned liquidity.
   /// @param recipient The address which should receive the fees collected
-  /// @param tickLower The lower tick of the position for which to collect fees
-  /// @param tickUpper The upper tick of the position for which to collect fees
-  /// @param amount0Requested How much token0 should be withdrawn from the fees owed
-  /// @param amount1Requested How much token1 should be withdrawn from the fees owed
-  /// @return amount0 The amount of fees collected in token0
-  /// @return amount1 The amount of fees collected in token1
+  /// @param tickLower The lower tick of the position for which to collect tokens
+  /// @param tickUpper The upper tick of the position for which to collect tokens
+  /// @param amount0Requested How much token0 should be withdrawn from the tokens owed
+  /// @param amount1Requested How much token1 should be withdrawn from the tokens owed
+  /// @return amount0 The amount of tokens collected in token0
+  /// @return amount1 The amount of tokens collected in token1
   function collect(
     address recipient,
     int24 tickLower,

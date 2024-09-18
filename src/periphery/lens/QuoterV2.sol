@@ -2,11 +2,11 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import "@katana/v3-contracts/core/libraries/SafeCast.sol";
-import "@katana/v3-contracts/core/libraries/TickMath.sol";
-import "@katana/v3-contracts/core/libraries/TickBitmap.sol";
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
-import "@katana/v3-contracts/core/interfaces/callback/IKatanaV3SwapCallback.sol";
+import "src/core/libraries/SafeCast.sol";
+import "src/core/libraries/TickMath.sol";
+import "src/core/libraries/TickBitmap.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/interfaces/callback/IKatanaV3SwapCallback.sol";
 
 import "../interfaces/IQuoterV2.sol";
 import "../base/PeripheryImmutableState.sol";
@@ -44,7 +44,7 @@ contract QuoterV2 is IQuoterV2, IKatanaV3SwapCallback, PeripheryImmutableState {
       : (tokenOut < tokenIn, uint256(amount1Delta), uint256(-amount0Delta));
 
     IKatanaV3Pool pool = getPool(tokenIn, tokenOut, fee);
-    (uint160 sqrtPriceX96After, int24 tickAfter,,,,,) = pool.slot0();
+    (uint160 sqrtPriceX96After, int24 tickAfter,,,,,,) = pool.slot0();
 
     if (isExactInput) {
       assembly {
@@ -90,7 +90,7 @@ contract QuoterV2 is IQuoterV2, IKatanaV3SwapCallback, PeripheryImmutableState {
   {
     int24 tickBefore;
     int24 tickAfter;
-    (, tickBefore,,,,,) = pool.slot0();
+    (, tickBefore,,,,,,) = pool.slot0();
     (amount, sqrtPriceX96After, tickAfter) = parseRevertReason(reason);
 
     initializedTicksCrossed = pool.countInitializedTicksCrossed(tickBefore, tickAfter);

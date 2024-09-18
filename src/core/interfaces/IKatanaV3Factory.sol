@@ -4,15 +4,14 @@ pragma solidity >=0.5.0;
 /// @title The interface for the Katana V3 Factory
 /// @notice The Katana V3 Factory facilitates creation of Katana V3 pools and control over the protocol fees
 interface IKatanaV3Factory {
-  /// @notice Emitted when the owner of the factory is changed
-  /// @param oldOwner The owner before the owner was changed
-  /// @param newOwner The owner after the owner was changed
-  event OwnerChanged(address indexed oldOwner, address indexed newOwner);
-
   /// @notice Emitted when the treasury address is changed
   /// @param oldTreasury The treasury address before the treasury was changed
   /// @param newTreasury The treasury address after the treasury was changed
   event TreasuryChanged(address indexed oldTreasury, address indexed newTreasury);
+
+  /// @notice Emitted when the ability to call the `flash` function on KatanaV3Pool is toggled
+  /// @param enabled Whether flash loans are enabled
+  event FlashLoanPermissionUpdated(bool indexed enabled);
 
   /// @notice Emitted when a pool is created
   /// @param token0 The first token of the pool by address sort order
@@ -27,8 +26,9 @@ interface IKatanaV3Factory {
   /// @notice Emitted when a new fee amount is enabled for pool creation via the factory
   /// @param fee The enabled fee, denominated in hundredths of a bip
   /// @param tickSpacing The minimum number of ticks between initialized ticks for pools created with the given fee
-  /// @param protocolFee The ratio of the fee amount to be sent to the Ronin treasury.
-  event FeeAmountEnabled(uint24 indexed fee, int24 indexed tickSpacing, uint16 indexed protocolFee);
+  /// @param protocolFeeNum The numerator of the protocol fee as a ratio of the fee amount that sent to the treasury
+  /// @param protocolFeeDen The denominator of the protocol fee as a ratio of the fee amount that sent to the treasury
+  event FeeAmountEnabled(uint24 indexed fee, int24 indexed tickSpacing, uint8 protocolFeeNum, uint8 protocolFeeDen);
 
   /// @notice Returns the current owner of the factory
   /// @dev Can be changed by the current owner via setOwner
@@ -54,8 +54,9 @@ interface IKatanaV3Factory {
   /// @notice Returns the default protocol fee ratio for a given fee amount, if enabled, or 0 if not enabled
   /// @dev This protocol fee can be changed by the factory owner in each pool later
   /// @param fee The enabled fee, denominated in hundredths of a bip. Returns 0 in case of unenabled fee
-  /// @return The protocol fee as a ratio of the fee amount: first byte is numerator, second byte is denominator
-  function feeAmountProtocol(uint24 fee) external view returns (uint16);
+  /// return numerator The numerator of the protocol fee as a ratio of the fee amount
+  /// return denominator The denominator of the protocol fee as a ratio of the fee amount
+  function feeAmountProtocol(uint24 fee) external view returns (uint8 numerator, uint8 denominator);
 
   /// @notice Returns the pool address for a given pair of tokens and a fee, or address 0 if it does not exist
   /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
@@ -75,11 +76,6 @@ interface IKatanaV3Factory {
   /// @return pool The address of the newly created pool
   function createPool(address tokenA, address tokenB, uint24 fee) external returns (address pool);
 
-  /// @notice Updates the owner of the factory
-  /// @dev Must be called by the current owner
-  /// @param _owner The new owner of the factory
-  function setOwner(address _owner) external;
-
   /// @notice Updates the treasury address
   /// @dev Must be called by the current owner
   /// @param _treasury The new treasury address
@@ -93,6 +89,7 @@ interface IKatanaV3Factory {
   /// @dev Fee amounts may never be removed once enabled
   /// @param fee The fee amount to enable, denominated in hundredths of a bip (i.e. 1e-6)
   /// @param tickSpacing The spacing between ticks to be enforced for all pools created with the given fee amount
-  /// @param feeProtocol The protocol fee as a ratio of the fee amount: first byte is numerator, second byte is denominator
-  function enableFeeAmount(uint24 fee, int24 tickSpacing, uint16 feeProtocol) external;
+  /// @param feeProtocolNum The numerator of the protocol fee as a ratio of the fee amount
+  /// @param feeProtocolDen The denominator of the protocol fee as a ratio of the fee amount
+  function enableFeeAmount(uint24 fee, int24 tickSpacing, uint8 feeProtocolNum, uint8 feeProtocolDen) external;
 }

@@ -7,9 +7,9 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
 
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
-import "@katana/v3-contracts/core/libraries/FixedPoint128.sol";
-import "@katana/v3-contracts/core/libraries/FullMath.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/libraries/FixedPoint128.sol";
+import "src/core/libraries/FullMath.sol";
 
 import "./interfaces/INonfungiblePositionManager.sol";
 import "./interfaces/INonfungibleTokenPositionDescriptor.sol";
@@ -58,6 +58,13 @@ contract NonfungiblePositionManager is
     uint128 tokensOwed1;
   }
 
+  // position's burned liquidity is owed in token0/token1 units
+  struct BurnedLiquidityOwed {
+    uint128 token0;
+    uint128 token1;
+  }
+
+  // position's collected fees in token0/token1 units
   struct CollectedFees {
     uint256 token0;
     uint256 token1;
@@ -72,9 +79,6 @@ contract NonfungiblePositionManager is
   /// @dev The token ID position data
   mapping(uint256 => Position) private _positions;
 
-  /// @dev How many tokens are collected by the position, as of the last colection
-  mapping(uint256 => CollectedFees) private _collectedFees;
-
   /// @dev The ID of the next token that will be minted. Skips 0
   uint176 private _nextId = 1;
   /// @dev The ID of the next pool that is used for the first time. Skips 0
@@ -83,36 +87,38 @@ contract NonfungiblePositionManager is
   /// @dev The address of the token descriptor contract, which handles generating token URIs for position tokens
   address private immutable _tokenDescriptor;
 
-  /// @dev Whether this contract has been initialized
-  bool private _initialized;
+  /// @dev How many tokens from burning liquidity are owed to the position
+  mapping(uint256 => BurnedLiquidityOwed) private _burnedLiquidityOwed;
+
+  /// @dev How many tokens are collected by the position, as of the last collection
+  mapping(uint256 => CollectedFees) private _collectedFees;
 
   constructor(address _factory, address _WETH9, address _tokenDescriptor_)
     ERC721Permit("Katana V3 Positions NFT-V1", "KATANA-V3-POS", "1")
     PeripheryImmutableState(_factory, _WETH9)
   {
     _tokenDescriptor = _tokenDescriptor_;
-    // disable initialization
-    _initialized = true;
   }
 
   function initialize() external {
-    require(!_initialized);
+    require(_nextId == 0, "Already initialized");
 
     _nextId = 1;
     _nextPoolId = 1;
-
-    _initialized = true;
   }
 
+  /// @inheritdoc IERC165
   function supportsInterface(bytes4 interfaceId) public pure override(ERC165, IERC165) returns (bool) {
     return interfaceId == type(IERC165).interfaceId || interfaceId == type(IERC721).interfaceId
       || interfaceId == type(IERC721Metadata).interfaceId || interfaceId == type(IERC721Enumerable).interfaceId;
   }
 
+  /// @inheritdoc IERC721Metadata
   function name() public pure override(ERC721, IERC721Metadata) returns (string memory) {
     return "Katana V3 Positions NFT-V1";
   }
 
+  /// @inheritdoc IERC721Metadata
   function symbol() public pure override(ERC721, IERC721Metadata) returns (string memory) {
     return "KATANA-V3-POS";
   }
@@ -308,6 +314,10 @@ contract NonfungiblePositionManager is
 
     require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, "Price slippage check");
 
+    BurnedLiquidityOwed storage burnedLiquidityOwed = _burnedLiquidityOwed[params.tokenId];
+    burnedLiquidityOwed.token0 += uint128(amount0);
+    burnedLiquidityOwed.token1 += uint128(amount1);
+
     bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
     // this is now updated to the current transaction
     (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) = pool.positions(positionKey);
@@ -341,7 +351,9 @@ contract NonfungiblePositionManager is
     isAuthorizedForToken(params.tokenId)
     returns (uint256 amount0, uint256 amount1)
   {
-    require(params.amount0Max > 0 || params.amount1Max > 0);
+    require(
+      params.amount0Max == type(uint128).max && params.amount1Max == type(uint128).max, "Must collect all tokens owed"
+    );
     // allow collecting to the nft position manager address with address 0
     address recipient = params.recipient == address(0) ? address(this) : params.recipient;
 
@@ -384,8 +396,11 @@ contract NonfungiblePositionManager is
     (amount0, amount1) = pool.collect(recipient, position.tickLower, position.tickUpper, amount0Collect, amount1Collect);
 
     CollectedFees storage fees = _collectedFees[params.tokenId];
-    fees.token0 += amount0;
-    fees.token1 += amount1;
+    BurnedLiquidityOwed storage burnedLiquidityOwed = _burnedLiquidityOwed[params.tokenId];
+    // we record only the fees collected, not wholly the tokens owed
+    fees.token0 += amount0 - burnedLiquidityOwed.token0;
+    fees.token1 += amount1 - burnedLiquidityOwed.token1;
+    (burnedLiquidityOwed.token0, burnedLiquidityOwed.token1) = (0, 0);
 
     // sometimes there will be a few less wei than expected due to rounding down in core, but we just subtract the full amount expected
     // instead of the actual amount so we can burn the token

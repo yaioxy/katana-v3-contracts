@@ -4,7 +4,7 @@ pragma solidity ^0.7.6;
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
 import { DeployKatanaV3Periphery } from "../DeployKatanaV3Periphery.s.sol";
-import { MixedRouteQuoterV1 } from "@katana/v3-contracts/periphery/lens/MixedRouteQuoterV1.sol";
+import { MixedRouteQuoterV1 } from "src/periphery/lens/MixedRouteQuoterV1.sol";
 
 contract DeployKatanaV3Mainnet is DeployKatanaV3Periphery {
   address mixedRouteQuoterV1;
@@ -16,7 +16,7 @@ contract DeployKatanaV3Mainnet is DeployKatanaV3Periphery {
     wron = 0xe514d9DEB7966c8BE0ca922de8a064264eA6bcd4; // WRON
     factoryV2 = 0xB255D6A720BB7c39fee173cE22113397119cB930; // Katana V2 Factory
 
-    vm.rememberKey(vm.envUint("MAINNET_PK"));
+    sender = vm.rememberKey(vm.envUint("MAINNET_PK"));
 
     super.setUp();
   }

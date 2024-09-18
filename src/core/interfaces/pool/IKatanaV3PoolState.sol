@@ -14,7 +14,8 @@ interface IKatanaV3PoolState {
   /// observationIndex The index of the last oracle observation that was written,
   /// observationCardinality The current maximum number of observations stored in the pool,
   /// observationCardinalityNext The next maximum number of observations, to be updated when the observation.
-  /// feeProtocol The protocol fee as a ratio of the swap fee.
+  /// feeProtocolNum the numerator of the current protocol fee which is a ratio (fraction < 1) of the swap fee
+  /// feeProtocolDen the denominator of the current protocol fee which is a ratio (fraction < 1) of the swap fee
   /// Encoded as a fraction, where first byte (8 bit value) is the numerator and the second byte is the denominator.
   /// unlocked Whether the pool is currently locked to reentrancy
   function slot0()
@@ -26,7 +27,8 @@ interface IKatanaV3PoolState {
       uint16 observationIndex,
       uint16 observationCardinality,
       uint16 observationCardinalityNext,
-      uint16 feeProtocol,
+      uint8 feeProtocolNum,
+      uint8 feeProtocolDen,
       bool unlocked
     );
 
@@ -37,10 +39,6 @@ interface IKatanaV3PoolState {
   /// @notice The fee growth as a Q128.128 fees of token1 collected per unit of liquidity for the entire life of the pool
   /// @dev This value can overflow the uint256
   function feeGrowthGlobal1X128() external view returns (uint256);
-
-  /// @notice The amounts of token0 and token1 that are owed to the protocol
-  /// @dev Protocol fees will never exceed uint128 max in either token
-  function protocolFees() external view returns (uint128 token0, uint128 token1);
 
   /// @notice The currently in range liquidity available to the pool
   /// @dev This value has no relationship to the total liquidity across all ticks

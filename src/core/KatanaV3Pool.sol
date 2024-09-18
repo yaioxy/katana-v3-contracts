@@ -25,7 +25,7 @@ import "./interfaces/callback/IKatanaV3MintCallback.sol";
 import "./interfaces/callback/IKatanaV3SwapCallback.sol";
 import "./interfaces/callback/IKatanaV3FlashCallback.sol";
 
-import "../external/libraries/AuthorizationLib.sol";
+import "../external/interfaces/IKatanaGovernance.sol";
 
 contract KatanaV3Pool is IKatanaV3Pool {
   using LowGasSafeMath for uint256;
@@ -49,8 +49,10 @@ contract KatanaV3Pool is IKatanaV3Pool {
     uint16 observationCardinality;
     // the next maximum number of observations to store, triggered in observations.write
     uint16 observationCardinalityNext;
-    // the current protocol fee as a ratio of the swap fee: first byte is numerator, second byte is denominator
-    uint16 feeProtocol;
+    // the numerator of the current protocol fee which is a ratio of the swap fee
+    uint8 feeProtocolNum;
+    // the denominator of the current protocol fee which is a ratio of the swap fee
+    uint8 feeProtocolDen;
     // whether the pool is locked
     bool unlocked;
   }
@@ -62,15 +64,6 @@ contract KatanaV3Pool is IKatanaV3Pool {
   uint256 public override feeGrowthGlobal0X128;
   /// @inheritdoc IKatanaV3PoolState
   uint256 public override feeGrowthGlobal1X128;
-
-  // accumulated protocol fees in token0/token1 units
-  struct ProtocolFees {
-    uint128 token0;
-    uint128 token1;
-  }
-  /// @inheritdoc IKatanaV3PoolState
-
-  ProtocolFees public override protocolFees;
 
   /// @inheritdoc IKatanaV3PoolState
   uint128 public override liquidity;
@@ -85,9 +78,11 @@ contract KatanaV3Pool is IKatanaV3Pool {
   Oracle.Observation[65535] public override observations;
 
   /// @inheritdoc IKatanaV3PoolImmutables
-  address public immutable override factory;
+  address public override factory;
   /// @inheritdoc IKatanaV3PoolImmutables
-  address public immutable override governance;
+  address public override governance;
+  /// @inheritdoc IKatanaV3PoolImmutables
+  address public override positionManager;
 
   // These below immutable constants are set when deploying the beacon proxy of the pool and
   // cannot be changed unless upgraded.
@@ -95,17 +90,13 @@ contract KatanaV3Pool is IKatanaV3Pool {
   address public override token0;
   /// @inheritdoc IKatanaV3PoolImmutables
   address public override token1;
-  /// @inheritdoc IKatanaV3PoolImmutables
-  uint24 public override fee;
-
-  /// @inheritdoc IKatanaV3PoolImmutables
-  int24 public override tickSpacing;
 
   /// @inheritdoc IKatanaV3PoolImmutables
   uint128 public override maxLiquidityPerTick;
-
-  /// @dev The contract is initialized with the immutable parameters
-  bool private _immutablesInitialized;
+  /// @inheritdoc IKatanaV3PoolImmutables
+  uint24 public override fee;
+  /// @inheritdoc IKatanaV3PoolImmutables
+  int24 public override tickSpacing;
 
   /// @dev Mutually exclusive reentrancy protection into the pool to/from a method. This method also prevents entrance
   /// to a function before the pool is initialized. The reentrancy guard is required throughout the contract because
@@ -117,33 +108,26 @@ contract KatanaV3Pool is IKatanaV3Pool {
     slot0.unlocked = true;
   }
 
-  /// @dev Prevents calling a function from anyone except the address returned by IKatanaV3Factory#owner()
-  modifier onlyFactoryOwner() {
-    require(msg.sender == IKatanaV3Factory(factory).owner());
-    _;
-  }
-
-  constructor(address factory_, address governance_) {
-    factory = factory_;
-    governance = governance_;
+  constructor() {
     // disable immutables initialization
-    _immutablesInitialized = true;
+    factory = address(1);
   }
 
-  /// @inheritdoc IKatanaV3PoolImmutablesInitializable
+  /// @inheritdoc IKatanaV3PoolImmutables
   function initializeImmutables(address factory_, address token0_, address token1_, uint24 fee_, int24 tickSpacing_)
     public
+    virtual
     override
   {
-    require(!_immutablesInitialized);
+    require(factory == address(0), "AII");
 
-    require(factory_ == factory && factory_ == msg.sender, "IF");
+    (factory, token0, token1, fee, tickSpacing) = (factory_, token0_, token1_, fee_, tickSpacing_);
 
-    (token0, token1, fee, tickSpacing) = (token0_, token1_, fee_, tickSpacing_);
+    // cache these immutable addresses for gas savings when swaps, mints, or burns are performed
+    governance = IKatanaV3Factory(factory_).owner();
+    positionManager = IKatanaGovernance(governance).getPositionManager();
 
     maxLiquidityPerTick = Tick.tickSpacingToMaxLiquidityPerTick(tickSpacing_);
-
-    _immutablesInitialized = true;
   }
 
   /// @dev Common checks for valid tick inputs.
@@ -266,13 +250,16 @@ contract KatanaV3Pool is IKatanaV3Pool {
 
     (uint16 cardinality, uint16 cardinalityNext) = observations.initialize(_blockTimestamp());
 
+    (uint8 feeProtocolNum, uint8 feeProtocolDen) = IKatanaV3Factory(factory).feeAmountProtocol(fee);
+
     slot0 = Slot0({
       sqrtPriceX96: sqrtPriceX96,
       tick: tick,
       observationIndex: 0,
       observationCardinality: cardinality,
       observationCardinalityNext: cardinalityNext,
-      feeProtocol: IKatanaV3Factory(factory).feeAmountProtocol(fee),
+      feeProtocolNum: feeProtocolNum,
+      feeProtocolDen: feeProtocolDen,
       unlocked: true
     });
 
@@ -427,7 +414,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
     lock
     returns (uint256 amount0, uint256 amount1)
   {
-    AuthorizationLib.checkPositionManager(governance);
+    require(msg.sender == positionManager, "IPM");
 
     require(amount > 0);
     (, int256 amount0Int, int256 amount1Int) = _modifyPosition(
@@ -510,7 +497,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
     // the swap fee in hundredths of a bip
     uint24 fee;
     // the protocol fee for the input token
-    uint16 feeProtocol;
+    uint8 feeProtocolNum;
+    uint8 feeProtocolDen;
     // the spacing between usable ticks
     int24 tickSpacing;
     // liquidity at the beginning of the swap
@@ -570,7 +558,7 @@ contract KatanaV3Pool is IKatanaV3Pool {
   ) external override returns (int256 amount0, int256 amount1) {
     // when quoting, we don't need to check authorization
     if (tx.origin != address(0)) {
-      AuthorizationLib.checkRouter(governance);
+      require(msg.sender == IKatanaGovernance(governance).getRouter(), "IR");
     }
 
     require(amountSpecified != 0, "AS");
@@ -591,7 +579,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
       liquidityStart: liquidity,
       blockTimestamp: _blockTimestamp(),
       fee: fee,
-      feeProtocol: slot0Start.feeProtocol,
+      feeProtocolNum: slot0Start.feeProtocolNum,
+      feeProtocolDen: slot0Start.feeProtocolDen,
       tickSpacing: tickSpacing,
       secondsPerLiquidityCumulativeX128: 0,
       tickCumulative: 0,
@@ -649,8 +638,8 @@ contract KatanaV3Pool is IKatanaV3Pool {
       }
 
       // if the protocol fee is on, calculate how much is owed, decrement feeAmount, and increment protocolFee
-      if (cache.feeProtocol > 0) {
-        uint256 delta = FullMath.mulDiv(step.feeAmount, cache.feeProtocol & 255, cache.feeProtocol >> 8);
+      if (cache.feeProtocolNum > 0) {
+        uint256 delta = FullMath.mulDiv(step.feeAmount, cache.feeProtocolNum, cache.feeProtocolDen);
         step.feeAmount -= delta;
         state.protocolFee += uint128(delta);
       }
@@ -725,10 +714,6 @@ contract KatanaV3Pool is IKatanaV3Pool {
     // update fee growth global
     if (zeroForOne) feeGrowthGlobal0X128 = state.feeGrowthGlobalX128;
     else feeGrowthGlobal1X128 = state.feeGrowthGlobalX128;
-    // transfer protocol fees to the treasury
-    if (state.protocolFee > 0) {
-      TransferHelper.safeTransfer(tokenIn, IKatanaV3Factory(factory).treasury(), state.protocolFee);
-    }
 
     (amount0, amount1) = zeroForOne == exactInput
       ? (amountSpecified - state.amountSpecifiedRemaining, state.amountCalculated)
@@ -747,6 +732,11 @@ contract KatanaV3Pool is IKatanaV3Pool {
       uint256 balance1Before = balance1();
       IKatanaV3SwapCallback(msg.sender).katanaV3SwapCallback(amount0, amount1, data);
       require(balance1Before.add(uint256(amount1)) <= balance1(), "IIA");
+    }
+
+    // transfer protocol fees to the treasury
+    if (state.protocolFee > 0) {
+      TransferHelper.safeTransfer(tokenIn, IKatanaV3Factory(factory).treasury(), state.protocolFee);
     }
 
     emit Swap(msg.sender, recipient, amount0, amount1, state.sqrtPriceX96, state.liquidity, state.tick);
@@ -789,57 +779,17 @@ contract KatanaV3Pool is IKatanaV3Pool {
       paid1 = balance1After - balance1Before;
 
       if (paid0 > 0) {
-        uint256 fees0 = FullMath.mulDiv(paid0, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
+        uint256 fees0 = FullMath.mulDiv(paid0, slot0.feeProtocolNum, slot0.feeProtocolDen);
         if (fees0 > 0) TransferHelper.safeTransfer(_token0, treasury, fees0);
         feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
       }
       if (paid1 > 0) {
-        uint256 fees1 = FullMath.mulDiv(paid1, slot0.feeProtocol & 255, slot0.feeProtocol >> 8);
+        uint256 fees1 = FullMath.mulDiv(paid1, slot0.feeProtocolNum, slot0.feeProtocolDen);
         if (fees1 > 0) TransferHelper.safeTransfer(_token1, treasury, fees1);
         feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
       }
     }
 
     emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
-  }
-
-  /// @inheritdoc IKatanaV3PoolOwnerActions
-  function setFeeProtocol(uint8 feeProtocolNumerator, uint8 feeProtocolDenominator)
-    external
-    override
-    lock
-    onlyFactoryOwner
-  {
-    require(feeProtocolNumerator < feeProtocolDenominator);
-    uint16 feeProtocolOld = slot0.feeProtocol;
-    slot0.feeProtocol = uint16(feeProtocolNumerator) | (uint16(feeProtocolDenominator) << 8);
-    emit SetFeeProtocol(
-      uint8(feeProtocolOld & 255), uint8(feeProtocolOld >> 8), feeProtocolNumerator, feeProtocolDenominator
-    );
-  }
-
-  /// @inheritdoc IKatanaV3PoolOwnerActions
-  function collectProtocol(address recipient, uint128 amount0Requested, uint128 amount1Requested)
-    external
-    override
-    lock
-    onlyFactoryOwner
-    returns (uint128 amount0, uint128 amount1)
-  {
-    amount0 = amount0Requested > protocolFees.token0 ? protocolFees.token0 : amount0Requested;
-    amount1 = amount1Requested > protocolFees.token1 ? protocolFees.token1 : amount1Requested;
-
-    if (amount0 > 0) {
-      if (amount0 == protocolFees.token0) amount0--; // ensure that the slot is not cleared, for gas savings
-      protocolFees.token0 -= amount0;
-      TransferHelper.safeTransfer(token0, recipient, amount0);
-    }
-    if (amount1 > 0) {
-      if (amount1 == protocolFees.token1) amount1--; // ensure that the slot is not cleared, for gas savings
-      protocolFees.token1 -= amount1;
-      TransferHelper.safeTransfer(token1, recipient, amount1);
-    }
-
-    emit CollectProtocol(msg.sender, recipient, amount0, amount1);
   }
 }

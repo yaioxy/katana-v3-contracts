@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import "@katana/v3-contracts/core/libraries/FullMath.sol";
-import "@katana/v3-contracts/core/libraries/FixedPoint96.sol";
+import "src/core/libraries/FullMath.sol";
+import "src/core/libraries/FixedPoint96.sol";
 
 /// @title Liquidity amount functions
 /// @notice Provides functions for computing liquidity amounts from token amounts and prices

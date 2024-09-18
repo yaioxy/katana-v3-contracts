@@ -2,8 +2,8 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import "@katana/v3-contracts/core/interfaces/callback/IKatanaV3FlashCallback.sol";
-import "@katana/v3-contracts/core/libraries/LowGasSafeMath.sol";
+import "src/core/interfaces/callback/IKatanaV3FlashCallback.sol";
+import "src/core/libraries/LowGasSafeMath.sol";
 
 import "../base/PeripheryPayments.sol";
 import "../base/PeripheryImmutableState.sol";

@@ -19,14 +19,8 @@ interface IKatanaGovernance {
   event PermissionUpdated(
     address indexed by, address indexed token, uint40 whitelistUntil, address[] allowed, bool[] statuses
   );
-
-  /**
-   * @dev Executes calls to the Katana V3 factory.
-   *
-   * @param data The array of encoded function calls.
-   * @return results The array of encoded results.
-   */
-  function v3FactoryMulticall(bytes[] calldata data) external returns (bytes[] memory results);
+  /// @dev Emitted when allowed actor list is updated.
+  event AllowedActorUpdated(address indexed actor, bool allowed);
 
   /**
    * @dev Sets the router address.
@@ -36,6 +30,35 @@ interface IKatanaGovernance {
    * @param router The address of the router.
    */
   function setRouter(address router) external;
+
+  /**
+   * @dev Sets an address is allowed/disallowed to skip authorization checks.
+   * To check if an address is allowed, see `isAllowedActor` function.
+   *
+   * - Requirements: Caller must be the owner.
+   *
+   * @param actor The address to be allowed/disallowed.
+   * @param allowed True if the address is allowed, otherwise false.
+   */
+  function setAllowedActor(address actor, bool allowed) external;
+
+  /**
+   * @notice Toggles the ability to call the `flash` function on KatanaV3Pool
+   *
+   * - Requirements: Caller must be the owner.
+   */
+  function toggleFlashLoanPermission() external;
+
+  /**
+   * @notice Enables a fee amount with the given tickSpacing for KatanaV3Factory
+   * @dev Fee amounts may never be removed once enabled. Caller must be the owner.
+   *
+   * @param fee The fee amount to enable, denominated in hundredths of a bip (i.e. 1e-6)
+   * @param tickSpacing The spacing between ticks to be enforced for all pools created with the given fee amount
+   * @param feeProtocolNum The numerator of the protocol fee as a ratio of the fee amount
+   * @param feeProtocolDen The denominator of the protocol fee as a ratio of the fee amount
+   */
+  function enableFeeAmount(uint24 fee, int24 tickSpacing, uint8 feeProtocolNum, uint8 feeProtocolDen) external;
 
   /**
    * @dev Sets the permission of a token.
@@ -49,15 +72,6 @@ interface IKatanaGovernance {
    */
   function setPermission(address token, uint40 whitelistUntil, address[] calldata alloweds, bool[] calldata statuses)
     external;
-
-  /**
-   * @dev Sets the factory address.
-   *
-   * - Requirements: Caller must be the owner.
-   *
-   * @param factory The address of the factory.
-   */
-  function setFactory(address factory) external;
 
   /**
    * @dev Creates a pair of tokens and sets the permission.
@@ -90,6 +104,12 @@ interface IKatanaGovernance {
   function getPositionManager() external view returns (address);
 
   /**
+   * @notice Whether the account is always skipped from authorization checks.
+   * @dev See `isAuthorized` function.
+   */
+  function isAllowedActor(address account) external view returns (bool);
+
+  /**
    * @notice Checks if an account is authorized to interact with a token.
    *
    * @param token The address of the token.
@@ -106,7 +126,7 @@ interface IKatanaGovernance {
   /**
    * @dev Gets the Katana V2 factory address.
    */
-  function getFactory() external view returns (address);
+  function getV2Factory() external view returns (address);
 
   /**
    * @notice Gets the whitelist duration of a token.

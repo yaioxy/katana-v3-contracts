@@ -12,9 +12,7 @@ contract KatanaGovernanceMock is IKatanaGovernance {
   bool private immutable _defaultPermission;
   mapping(address => mapping(address => uint256)) private _permission;
 
-  constructor(address router, address postionManager, bool defaultPermission) {
-    _router = router;
-    _positionManager = postionManager;
+  constructor(bool defaultPermission) {
     _defaultPermission = defaultPermission;
   }
 
@@ -26,19 +24,12 @@ contract KatanaGovernanceMock is IKatanaGovernance {
     _permission[token][account] = 2;
   }
 
-  function v3FactoryMulticall(bytes[] calldata data) external override returns (bytes[] memory results) {
-    results = new bytes[](data.length);
-    for (uint256 i = 0; i < data.length; ++i) {
-      results[i] = Address.functionCall(_v3Factory, data[i]);
-    }
-  }
-
   function setRouter(address router) external override {
     _router = router;
   }
 
-  function setPositionManager(address postionManager) external {
-    _positionManager = postionManager;
+  function setPositionManager(address positionManager) external {
+    _positionManager = positionManager;
   }
 
   function getRouter() external view override returns (address) {
@@ -70,7 +61,7 @@ contract KatanaGovernanceMock is IKatanaGovernance {
     _v3Factory = factory;
   }
 
-  function setFactory(address) external pure override {
+  function setAllowedActor(address, bool) external pure override {
     revert("not implemented");
   }
 
@@ -87,7 +78,19 @@ contract KatanaGovernanceMock is IKatanaGovernance {
     revert("not implemented");
   }
 
-  function getFactory() external pure override returns (address) {
+  function toggleFlashLoanPermission() external pure override {
+    revert("not implemented");
+  }
+
+  function enableFeeAmount(uint24, int24, uint8, uint8) external pure override {
+    revert("not implemented");
+  }
+
+  function isAllowedActor(address) external pure override returns (bool) {
+    revert("not implemented");
+  }
+
+  function getV2Factory() external pure override returns (address) {
     revert("not implemented");
   }
 

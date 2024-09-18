@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0 <0.8.0;
 
-import "@katana/v3-contracts/core/libraries/FullMath.sol";
-import "@katana/v3-contracts/core/libraries/TickMath.sol";
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/libraries/FullMath.sol";
+import "src/core/libraries/TickMath.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
 
 /// @title Oracle library
 /// @notice Provides functions to integrate with V3 pool oracle
@@ -71,7 +71,7 @@ library OracleLibrary {
   /// @param pool Address of Katana V3 pool that we want to observe
   /// @return secondsAgo The number of seconds ago of the oldest observation stored for the pool
   function getOldestObservationSecondsAgo(address pool) internal view returns (uint32 secondsAgo) {
-    (,, uint16 observationIndex, uint16 observationCardinality,,,) = IKatanaV3Pool(pool).slot0();
+    (,, uint16 observationIndex, uint16 observationCardinality,,,,) = IKatanaV3Pool(pool).slot0();
     require(observationCardinality > 0, "NI");
 
     (uint32 observationTimestamp,,, bool initialized) =
@@ -90,7 +90,7 @@ library OracleLibrary {
   /// @param pool Address of Katana V3 pool
   /// @return The tick that the pool was in at the start of the current block
   function getBlockStartingTickAndLiquidity(address pool) internal view returns (int24, uint128) {
-    (, int24 tick, uint16 observationIndex, uint16 observationCardinality,,,) = IKatanaV3Pool(pool).slot0();
+    (, int24 tick, uint16 observationIndex, uint16 observationCardinality,,,,) = IKatanaV3Pool(pool).slot0();
 
     // 2 observations are needed to reliably calculate the block starting tick
     require(observationCardinality > 1, "NEO");

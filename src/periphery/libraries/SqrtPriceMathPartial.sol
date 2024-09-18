@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import "@katana/v3-contracts/core/libraries/FullMath.sol";
-import "@katana/v3-contracts/core/libraries/UnsafeMath.sol";
-import "@katana/v3-contracts/core/libraries/FixedPoint96.sol";
+import "src/core/libraries/FullMath.sol";
+import "src/core/libraries/UnsafeMath.sol";
+import "src/core/libraries/FixedPoint96.sol";
 
 /// @title Functions based on Q64.96 sqrt price and liquidity
-/// @notice Exposes two functions from @katana/v3-contracts/core SqrtPriceMath
+/// @notice Exposes two functions from src/core SqrtPriceMath
 /// that use square root of price as a Q64.96 and liquidity to compute deltas
 library SqrtPriceMathPartial {
   /// @notice Gets the amount0 delta between two prices

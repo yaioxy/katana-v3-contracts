@@ -2,16 +2,16 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import "@katana/v3-contracts/periphery/base/PeripheryImmutableState.sol";
-import "@katana/v3-contracts/core/libraries/SafeCast.sol";
-import "@katana/v3-contracts/core/libraries/TickMath.sol";
-import "@katana/v3-contracts/core/libraries/TickBitmap.sol";
-import "@katana/v3-contracts/core/interfaces/IKatanaV3Pool.sol";
-import "@katana/v3-contracts/core/interfaces/callback/IKatanaV3SwapCallback.sol";
-import "@katana/v3-contracts/periphery/libraries/Path.sol";
-import "@katana/v3-contracts/periphery/libraries/PoolAddress.sol";
-import "@katana/v3-contracts/periphery/libraries/CallbackValidation.sol";
+import "src/core/libraries/SafeCast.sol";
+import "src/core/libraries/TickMath.sol";
+import "src/core/libraries/TickBitmap.sol";
+import "src/core/interfaces/IKatanaV3Pool.sol";
+import "src/core/interfaces/callback/IKatanaV3SwapCallback.sol";
+import "src/periphery/libraries/Path.sol";
+import "src/periphery/libraries/PoolAddress.sol";
+import "src/periphery/libraries/CallbackValidation.sol";
 
+import "../base/PeripheryImmutableState.sol";
 import "../base/ImmutableState.sol";
 import "../interfaces/IMixedRouteQuoterV1.sol";
 import "../libraries/PoolTicksCounter.sol";
@@ -60,7 +60,7 @@ contract MixedRouteQuoterV1Testnet is IMixedRouteQuoterV1, IKatanaV3SwapCallback
       amount0Delta > 0 ? (tokenIn < tokenOut, uint256(-amount1Delta)) : (tokenOut < tokenIn, uint256(-amount0Delta));
 
     IKatanaV3Pool pool = getPool(tokenIn, tokenOut, fee);
-    (uint160 v3SqrtPriceX96After, int24 tickAfter,,,,,) = pool.slot0();
+    (uint160 v3SqrtPriceX96After, int24 tickAfter,,,,,,) = pool.slot0();
 
     if (isExactInput) {
       assembly {
@@ -99,7 +99,7 @@ contract MixedRouteQuoterV1Testnet is IMixedRouteQuoterV1, IKatanaV3SwapCallback
   {
     int24 tickBefore;
     int24 tickAfter;
-    (, tickBefore,,,,,) = pool.slot0();
+    (, tickBefore,,,,,,) = pool.slot0();
     (amount, sqrtPriceX96After, tickAfter) = parseRevertReason(reason);
 
     initializedTicksCrossed = pool.countInitializedTicksCrossed(tickBefore, tickAfter);
