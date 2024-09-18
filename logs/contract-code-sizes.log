@@ -19,11 +19,11 @@
 | FixedPoint96                       |       86 |     24,490 |
 | FullMath                           |       86 |     24,490 |
 | HexStrings                         |       86 |     24,490 |
-| KatanaGovernanceMock               |    3,479 |     21,097 |
+| KatanaGovernanceMock               |    2,388 |     22,188 |
 | KatanaInterfaceMulticall           |    1,295 |     23,281 |
 | KatanaV2Library                    |       86 |     24,490 |
 | KatanaV2LibraryTestnet             |       86 |     24,490 |
-| KatanaV3Factory                    |    4,106 |     20,470 |
+| KatanaV3Factory                    |    4,132 |     20,444 |
 | KatanaV3Pool                       |   21,545 |      3,031 |
 | KatanaV3PoolBeacon                 |    4,246 |     20,330 |
 | KatanaV3PoolProxy                  |    1,209 |     23,367 |
