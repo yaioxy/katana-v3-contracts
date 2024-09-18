@@ -23,16 +23,6 @@ interface IKatanaGovernance {
   event AllowedActorUpdated(address indexed actor, bool allowed);
 
   /**
-   * @dev Executes calls to the Katana V3 factory.
-   *
-   * - Requirements: Caller must be the owner.
-   *
-   * @param data The array of encoded function calls.
-   * @return results The array of encoded results.
-   */
-  function v3FactoryMulticall(bytes[] calldata data) external returns (bytes[] memory results);
-
-  /**
    * @dev Sets the router address.
    *
    * - Requirements: Caller must be the owner.
@@ -51,6 +41,24 @@ interface IKatanaGovernance {
    * @param allowed True if the address is allowed, otherwise false.
    */
   function setAllowedActor(address actor, bool allowed) external;
+
+  /**
+   * @notice Toggles the ability to call the `flash` function on KatanaV3Pool
+   *
+   * - Requirements: Caller must be the owner.
+   */
+  function toggleFlashLoanPermission() external;
+
+  /**
+   * @notice Enables a fee amount with the given tickSpacing for KatanaV3Factory
+   * @dev Fee amounts may never be removed once enabled. Caller must be the owner.
+   *
+   * @param fee The fee amount to enable, denominated in hundredths of a bip (i.e. 1e-6)
+   * @param tickSpacing The spacing between ticks to be enforced for all pools created with the given fee amount
+   * @param feeProtocolNum The numerator of the protocol fee as a ratio of the fee amount
+   * @param feeProtocolDen The denominator of the protocol fee as a ratio of the fee amount
+   */
+  function enableFeeAmount(uint24 fee, int24 tickSpacing, uint8 feeProtocolNum, uint8 feeProtocolDen) external;
 
   /**
    * @dev Sets the permission of a token.
@@ -118,7 +126,7 @@ interface IKatanaGovernance {
   /**
    * @dev Gets the Katana V2 factory address.
    */
-  function getFactory() external view returns (address);
+  function getV2Factory() external view returns (address);
 
   /**
    * @notice Gets the whitelist duration of a token.

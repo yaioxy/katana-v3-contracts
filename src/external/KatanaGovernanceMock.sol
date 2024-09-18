@@ -24,13 +24,6 @@ contract KatanaGovernanceMock is IKatanaGovernance {
     _permission[token][account] = 2;
   }
 
-  function v3FactoryMulticall(bytes[] calldata data) external override returns (bytes[] memory results) {
-    results = new bytes[](data.length);
-    for (uint256 i = 0; i < data.length; ++i) {
-      results[i] = Address.functionCall(_v3Factory, data[i]);
-    }
-  }
-
   function setRouter(address router) external override {
     _router = router;
   }
@@ -49,10 +42,6 @@ contract KatanaGovernanceMock is IKatanaGovernance {
 
   function getPositionManager() external view override returns (address) {
     return _positionManager;
-  }
-
-  function isAllowedActor(address) external pure override returns (bool) {
-    revert("not implemented");
   }
 
   function isAuthorized(address[] memory tokens, address account) external view override returns (bool) {
@@ -89,7 +78,19 @@ contract KatanaGovernanceMock is IKatanaGovernance {
     revert("not implemented");
   }
 
-  function getFactory() external pure override returns (address) {
+  function toggleFlashLoanPermission() external pure override {
+    revert("not implemented");
+  }
+
+  function enableFeeAmount(uint24, int24, uint8, uint8) external pure override {
+    revert("not implemented");
+  }
+
+  function isAllowedActor(address) external pure override returns (bool) {
+    revert("not implemented");
+  }
+
+  function getV2Factory() external pure override returns (address) {
     revert("not implemented");
   }
 
