@@ -407,7 +407,7 @@ contract NonfungiblePositionManager is
     (position.tokensOwed0, position.tokensOwed1) = (tokensOwed0 - amount0Collect, tokensOwed1 - amount1Collect);
 
     // if there's no liquidity and no tokens owed, burn the position
-    if (position.liquidity == 0 && tokensOwed0 == amount0Collect && tokensOwed1 == amount1Collect) {
+    if (position.liquidity == 0) {
       delete _positions[params.tokenId];
       _burn(params.tokenId);
     }

@@ -12,7 +12,6 @@ import "src/periphery/libraries/PoolAddress.sol";
 import "src/periphery/libraries/CallbackValidation.sol";
 
 import "../base/PeripheryImmutableState.sol";
-import "../base/ImmutableState.sol";
 import "../interfaces/IMixedRouteQuoterV1.sol";
 import "../libraries/PoolTicksCounter.sol";
 import "../libraries/KatanaV2LibraryTestnet.sol";
