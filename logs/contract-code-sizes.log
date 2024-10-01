@@ -34,7 +34,7 @@
 | MixedRouteQuoterV1Testnet          |    7,220 |     17,356 |
 | NFTDescriptor                      |   23,372 |      1,204 |
 | NFTSVG                             |       86 |     24,490 |
-| NonfungiblePositionManager         |   24,394 |        182 |
+| NonfungiblePositionManager         |   24,120 |        456 |
 | NonfungibleTokenPositionDescriptor |    5,097 |     19,479 |
 | Oracle                             |       86 |     24,490 |
 | OracleLibrary                      |       86 |     24,490 |
