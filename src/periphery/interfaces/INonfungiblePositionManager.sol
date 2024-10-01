@@ -161,7 +161,9 @@ interface INonfungiblePositionManager is
     uint128 amount1Max;
   }
 
-  /// @notice Collects up to a maximum amount of fees owed to a specific position to the recipient
+  /// @notice Collects the maximum amount of fees owed to a specific position to the recipient
+  /// @dev `params.amount1Max` and `params.amount0Max` must both be equal to 2**128 - 1, or the call will revert.
+  /// The NFT will automatically be burned if the position has no liquidity remaining.
   /// @param params tokenId The ID of the NFT for which tokens are being collected,
   /// recipient The account that should receive the tokens,
   /// amount0Max The maximum amount of token0 to collect,
@@ -169,9 +171,4 @@ interface INonfungiblePositionManager is
   /// @return amount0 The amount of fees collected in token0
   /// @return amount1 The amount of fees collected in token1
   function collect(CollectParams calldata params) external payable returns (uint256 amount0, uint256 amount1);
-
-  /// @notice Burns a token ID, which deletes it from the NFT contract. The token must have 0 liquidity and all tokens
-  /// must be collected first.
-  /// @param tokenId The ID of the token that is being burned
-  function burn(uint256 tokenId) external payable;
 }
